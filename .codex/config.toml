@@ -1,0 +1,4 @@
+[mcp_servers]
+
+[mcp_servers.vibearound]
+url = "http://127.0.0.1:12358/va/mcp?token=a1c16a5a9834a2720bf28feac1fb3b41a76781bdc9e5f750b86750bfa2005d76"
