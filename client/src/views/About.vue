@@ -5,14 +5,14 @@
     <section style="text-align:center;margin-bottom:48px;">
       <div class="avatar">Z</div>
       <h1 style="font-size:2rem;margin-top:16px;">Zephyr</h1>
-      <p style="color:var(--text-muted);margin-top:6px;">开发者 · 音乐爱好者</p>
+      <p style="color:var(--text-muted);margin-top:6px;">开发者 · 技术爱好者</p>
     </section>
 
     <!-- Bio -->
     <section class="card" style="margin-bottom:24px;text-align:center;padding:32px;">
       <p style="font-size:1.05rem;line-height:1.8;color:var(--text-muted);">
-        喜欢干净代码和好旋律。<br/>
-        用 Go 构建后端服务，用音乐填满生活。<br/>
+        喜欢干净代码和好设计。<br/>
+        用 Go 构建后端服务，用技术改变生活。<br/>
         永远在学习，永远在探索。
       </p>
     </section>

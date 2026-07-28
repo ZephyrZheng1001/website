@@ -30,7 +30,6 @@
             <router-link to="/notes" class="sidebar-item sidebar-sub"><span>💬</span> 碎碎念</router-link>
           </div>
 
-          <router-link to="/music" class="sidebar-item"><span>🎧</span> 音乐</router-link>
           <router-link to="/about" class="sidebar-item"><span>👤</span> 关于</router-link>
         </nav>
       </aside>

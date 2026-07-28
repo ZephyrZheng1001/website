@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div style="padding-top:32px;padding-bottom:80px;max-width:720px;margin:0 auto;padding-left:24px;padding-right:24px;">
     <!-- Login -->
     <div v-if="!isLoggedIn" style="max-width:400px;margin:80px auto;">
@@ -29,7 +29,6 @@
       <!-- Tabs -->
       <div style="display:flex;gap:8px;margin-bottom:24px;">
         <button class="btn" :class="tab==='articles'?'btn-primary':'btn-outline'" @click="tab='articles'">文章管理</button>
-        <button class="btn" :class="tab==='music'?'btn-primary':'btn-outline'" @click="tab='music'">音乐管理</button>
         <button class="btn" :class="tab==='write'?'btn-primary':'btn-outline'" @click="openWrite()">写文章</button>
         <button class="btn" :class="tab==='password'?'btn-primary':'btn-outline'" @click="tab='password'">改密码</button>
       </div>
@@ -49,43 +48,6 @@
         </div>
       </div>
 
-      <!-- Music list -->
-      <div v-if="tab==='music'">
-        <div class="card" style="margin-bottom:20px;">
-          <h3 style="margin-bottom:12px;">添加音乐</h3>
-          <div class="form-group">
-            <label>歌名</label>
-            <input v-model="musicForm.title" placeholder="歌名" />
-          </div>
-          <div class="form-group">
-            <label>艺术家</label>
-            <input v-model="musicForm.artist" placeholder="艺术家" />
-          </div>
-          <div class="form-group">
-            <label>专辑</label>
-            <input v-model="musicForm.album" placeholder="专辑（可选）" />
-          </div>
-          <div class="form-group">
-            <label>平台链接</label>
-            <input v-model="musicForm.platform_url" placeholder="网易云/Spotify/QQ音乐链接" />
-          </div>
-          <div class="form-group">
-            <label>描述</label>
-            <textarea v-model="musicForm.description" placeholder="为什么喜欢这首歌？" rows="2"></textarea>
-          </div>
-          <button class="btn btn-primary" @click="addMusic">{{ editingMusicId ? '更新' : '添加' }}</button>
-        </div>
-
-        <div v-if="musicList.length===0" style="text-align:center;color:var(--text-muted);padding:20px;">暂无音乐</div>
-        <div v-for="m in musicList" :key="m.id" class="card" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <strong>{{ m.title }}</strong>
-            <span style="color:var(--text-muted);margin-left:8px;">— {{ m.artist }}</span>
-          </div>
-          <button class="btn btn-outline btn-sm" @click="editMusic(m)">编辑</button>`n              <button class="btn btn-danger btn-sm" @click="deleteMusic(m.id)">删除</button>
-        </div>
-      </div>
-
       <!-- Write / Edit -->
       <div v-if="tab==='write'">
         <div class="form-group">
@@ -93,49 +55,54 @@
           <input v-model="editorForm.title" placeholder="文章标题" />
         </div>
         <div class="form-group">
-          <label>摘要</label>
-          <input v-model="editorForm.summary" placeholder="简短摘要（可选）" />
-        </div>
-        <div class="form-group"><label>专栏</label><select v-model="editorForm.category"><option value="blog">📝 技术文章</option><option value="leetcode">💡 算法笔记</option><option value="projects">🚀 项目</option><option value="notes">💬 碎碎念</option></select></div><div class="form-group">
-          <label>标签（逗号分隔）</label>
-          <input v-model="editorForm.tags" placeholder="如: Go,Vue,音乐" />
+          <label>分类</label>
+          <select v-model="editorForm.category">
+            <option value="blog">技术文章</option>
+            <option value="leetcode">算法笔记</option>
+            <option value="projects">项目</option>
+            <option value="notes">碎碎念</option>
+          </select>
         </div>
         <div class="form-group">
-          <label>内容（Markdown）</label>
-          <div class="editor-wrap">
-            <textarea v-model="editorForm.content" placeholder="用 Markdown 写文章..."></textarea>
-            <div class="preview-pane article-content" v-html="previewContent"></div>
-          </div>
+          <label>摘要</label>
+          <textarea v-model="editorForm.summary" placeholder="简短摘要（可选）" rows="2"></textarea>
         </div>
-        <div style="display:flex;gap:12px;">
-          <button class="btn btn-primary" @click="saveArticle">{{ editingId ? '更新' : '发布' }}</button>
-          <button class="btn btn-outline" @click="tab='articles'">取消</button>
+        <div class="form-group">
+          <label>标签（逗号分隔）</label>
+          <input v-model="editorForm.tags" placeholder="Go, 后端, 微服务" />
+        </div>
+        <div class="editor-wrap">
+          <textarea v-model="editorForm.content" placeholder="Markdown 内容..."></textarea>
+          <div class="preview-pane article-content" v-html="previewContent"></div>
+        </div>
+        <div style="margin-top:16px;">
+          <button class="btn btn-primary" @click="saveArticle">{{ editingId ? '更新文章' : '发布文章' }}</button>
+          <button class="btn btn-outline" style="margin-left:8px;" @click="tab='articles'">取消</button>
         </div>
       </div>
 
-            <!-- Change Password -->
+      <!-- Change Password -->
       <div v-if="tab==='password'" style="max-width:400px;">
         <div class="card">
-          <h3 style="margin-bottom:16px;">修改密码</h3>
           <div class="form-group">
-            <label>原密码</label>
-            <input v-model="pwForm.old_password" type="password" placeholder="输入原密码" />
+            <label>旧密码</label>
+            <input v-model="pwForm.old_password" type="password" />
           </div>
           <div class="form-group">
             <label>新密码</label>
-            <input v-model="pwForm.new_password" type="password" placeholder="至少6位" />
+            <input v-model="pwForm.new_password" type="password" />
           </div>
           <div class="form-group">
             <label>确认新密码</label>
-            <input v-model="pwForm.confirm" type="password" placeholder="再次输入新密码" />
+            <input v-model="pwForm.confirm" type="password" />
           </div>
-          <button class="btn btn-primary" @click="changePassword">确认修改</button>
+          <button class="btn btn-primary" @click="changePassword">修改密码</button>
         </div>
       </div>
-
-      <!-- Toast -->
-      <div v-if="toast" :class="['toast', 'toast-'+toast.type]">{{ toast.msg }}</div>
     </div>
+
+    <!-- Toast -->
+    <div v-if="toast" :class="['toast', 'toast-' + toast.type]">{{ toast.msg }}</div>
   </div>
 </template>
 
@@ -152,8 +119,7 @@ const isLoggedIn = computed(() => auth.isLoggedIn)
 
 const tab = ref('articles')
 const articles = ref([])
-const musicList = ref([])
-const editingId = ref(null); const editingMusicId = ref(null)
+const editingId = ref(null)
 const toast = ref(null)
 
 const loginForm = ref({ username: '', password: '' })
@@ -162,7 +128,6 @@ const loginLoading = ref(false)
 
 const pwForm = ref({ old_password: '', new_password: '', confirm: '' });
 const editorForm = ref({ title: '', content: '', summary: '', tags: '', category: 'blog' })
-const musicForm = ref({ title: '', artist: '', album: '', platform_url: '', platform: 'netease', song_id: '', description: '' })
 
 const previewContent = computed(() => {
   if (!editorForm.value.content) return '<span style="color:#888">预览...</span>'
@@ -185,7 +150,6 @@ async function doLogin() {
   try {
     await auth.login(loginForm.value.username, loginForm.value.password)
     fetchArticles()
-    fetchMusic()
   } catch (e) {
     loginErr.value = e?.message || '登录失败'
   } finally {
@@ -240,44 +204,6 @@ async function deleteArticle(id) {
   }
 }
 
-// Music
-async function fetchMusic() {
-  try {
-    const res = await adminAPI.listMusic()
-    musicList.value = res.data || []
-  } catch (e) { console.error(e) }
-}
-
-async function addMusic() {
-  try {
-    if (editingMusicId.value) {
-      await adminAPI.updateMusic(editingMusicId.value, musicForm.value)
-      showToast('音乐已更新')
-      editingMusicId.value = null
-    } else {
-      await adminAPI.addMusic(musicForm.value)
-      showToast('音乐已添加')
-    }
-    musicForm.value = { title: '', artist: '', album: '', platform_url: '', platform: 'netease', song_id: '', description: '' }
-    fetchMusic()
-  } catch (e) {
-    showToast(e?.message || '添加失败', 'error')
-  }
-}
-
-function editMusic(m) { editingMusicId.value = m.id; musicForm.value = { title: m.title, artist: m.artist, album: m.album, platform_url: m.platform_url, platform: m.platform || 'netease', song_id: m.song_id, description: m.description }; }
-
-async function deleteMusic(id) {
-  if (!confirm('确定删除吗？')) return
-  try {
-    await adminAPI.deleteMusic(id)
-    showToast('已删除')
-    fetchMusic()
-  } catch (e) {
-    showToast(e?.message || '删除失败', 'error')
-  }
-}
-
 async function changePassword() {
   if (!pwForm.value.old_password || !pwForm.value.new_password) {
     showToast('请填写完整', 'error'); return
@@ -304,7 +230,6 @@ async function changePassword() {
 onMounted(() => {
   if (isLoggedIn.value) {
     fetchArticles()
-    fetchMusic()
   }
 })
 </script>
