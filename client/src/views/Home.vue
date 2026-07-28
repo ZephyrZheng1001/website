@@ -19,7 +19,7 @@
 
     <!-- Navigation cards -->
     <section>
-      <div class="nav-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+      <div class="nav-grid">
         <router-link v-for="col in columns" :key="col.key" :to="col.link" class="card nav-card">
           <div class="nav-card-icon">{{ col.icon }}</div>
           <div>
@@ -103,6 +103,11 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
 .nav-card {
   display: flex;
   align-items: center;
@@ -140,6 +145,6 @@ onMounted(async () => {
 .nav-card:hover .nav-card-arrow { transform: translateX(3px); color: var(--accent); }
 
 @media (max-width: 768px) {
-  .nav-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+  .nav-grid { grid-template-columns: 1fr; }
 }
 </style>
