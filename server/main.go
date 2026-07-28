@@ -29,18 +29,6 @@ type Article struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type Music struct {
-	ID          int       `json:"id"`
-	Title       string    `json:"title"`
-	Artist      string    `json:"artist"`
-	Album       string    `json:"album"`
-	PlatformURL string    `json:"platform_url"`
-	Platform    string    `json:"platform"`
-	SongID      string    `json:"song_id"`
-	Description string    `json:"description"`
-	CreatedAt   time.Time `json:"created_at"`
-}
-
 type APIResponse struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message,omitempty"`
@@ -142,68 +130,54 @@ func getArticle(w http.ResponseWriter, r *http.Request) {
 	}})
 }
 
-func getMusicList(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT id, title, artist, album, platform_url, platform, song_id, description, created_at FROM music_list ORDER BY created_at DESC")
-	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
-	defer rows.Close()
-	var list []Music
-	for rows.Next() {
-		var m Music
-		rows.Scan(&m.ID, &m.Title, &m.Artist, &m.Album, &m.PlatformURL, &m.Platform, &m.SongID, &m.Description, &m.CreatedAt)
-		list = append(list, m)
-	}
-	if list == nil { list = []Music{} }
-	writeJSON(w, 200, APIResponse{Success: true, Data: list})
-}
-
 // ====================== Admin Handlers ======================
 
 func adminLogin(w http.ResponseWriter, r *http.Request) {
-	var req struct {
+	var input struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
 	}
-	json.NewDecoder(r.Body).Decode(&req)
+	json.NewDecoder(r.Body).Decode(&input)
+
 	var hash string
-	err := db.QueryRow("SELECT password_hash FROM users WHERE username=?", req.Username).Scan(&hash)
-	if err != nil || bcrypt.CompareHashAndPassword([]byte(hash), []byte(req.Password)) != nil {
+	err := db.QueryRow("SELECT password_hash FROM users WHERE username=?", input.Username).Scan(&hash)
+	if err != nil || bcrypt.CompareHashAndPassword([]byte(hash), []byte(input.Password)) != nil {
 		writeJSON(w, 401, APIResponse{Success: false, Message: "用户名或密码错误"})
 		return
 	}
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"username": req.Username,
-		"exp":      time.Now().Add(72 * time.Hour).Unix(),
+		"username": input.Username,
+		"exp":      time.Now().Add(24 * time.Hour).Unix(),
 	})
 	tokenStr, _ := token.SignedString(jwtSecret)
 	writeJSON(w, 200, APIResponse{Success: true, Data: map[string]string{"token": tokenStr}})
 }
 
 func adminChangePassword(w http.ResponseWriter, r *http.Request, username string) {
-	var req struct {
+	var input struct {
 		OldPassword string `json:"old_password"`
 		NewPassword string `json:"new_password"`
 	}
-	json.NewDecoder(r.Body).Decode(&req)
-	if len(req.NewPassword) < 6 {
-		writeJSON(w, 400, APIResponse{Success: false, Message: "新密码至少6位"})
-		return
-	}
+	json.NewDecoder(r.Body).Decode(&input)
 
 	var hash string
 	err := db.QueryRow("SELECT password_hash FROM users WHERE username=?", username).Scan(&hash)
-	if err != nil || bcrypt.CompareHashAndPassword([]byte(hash), []byte(req.OldPassword)) != nil {
-		writeJSON(w, 400, APIResponse{Success: false, Message: "原密码错误"})
+	if err != nil || bcrypt.CompareHashAndPassword([]byte(hash), []byte(input.OldPassword)) != nil {
+		writeJSON(w, 400, APIResponse{Success: false, Message: "旧密码错误"})
 		return
 	}
-	newHash, _ := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+
+	newHash, _ := bcrypt.GenerateFromPassword([]byte(input.NewPassword), bcrypt.DefaultCost)
 	db.Exec("UPDATE users SET password_hash=? WHERE username=?", string(newHash), username)
-	writeJSON(w, 200, APIResponse{Success: true, Message: "密码修改成功"})
+	writeJSON(w, 200, APIResponse{Success: true, Message: "密码已修改"})
 }
 
 func adminGetArticles(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Query("SELECT id, title, content, summary, tags, category, created_at, updated_at FROM articles ORDER BY created_at DESC")
 	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
 	defer rows.Close()
+
 	var articles []Article
 	for rows.Next() {
 		var a Article
@@ -211,24 +185,25 @@ func adminGetArticles(w http.ResponseWriter, r *http.Request) {
 		articles = append(articles, a)
 	}
 	if articles == nil { articles = []Article{} }
-	writeJSON(w, 200, APIResponse{Success: true, Data: map[string]interface{}{"articles": articles}})
+	writeJSON(w, 200, APIResponse{Success: true, Data: articles})
 }
 
 func adminCreateArticle(w http.ResponseWriter, r *http.Request) {
 	var a Article
 	json.NewDecoder(r.Body).Decode(&a)
-	if a.Category == "" { a.Category = "blog" }
-	res, err := db.Exec("INSERT INTO articles (title, content, summary, tags, category) VALUES (?,?,?,?,?)", a.Title, a.Content, a.Summary, a.Tags, a.Category)
+	res, err := db.Exec("INSERT INTO articles (title, content, summary, tags, category) VALUES (?,?,?,?,?)",
+		a.Title, a.Content, a.Summary, a.Tags, a.Category)
 	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
 	id, _ := res.LastInsertId()
-	writeJSON(w, 201, APIResponse{Success: true, Data: map[string]int64{"id": id}})
+	writeJSON(w, 200, APIResponse{Success: true, Data: map[string]int64{"id": id}})
 }
 
 func adminUpdateArticle(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, "/api/admin/articles/")
 	var a Article
 	json.NewDecoder(r.Body).Decode(&a)
-	_, err := db.Exec("UPDATE articles SET title=?, content=?, summary=?, tags=?, category=? WHERE id=?", a.Title, a.Content, a.Summary, a.Tags, a.Category, id)
+	_, err := db.Exec("UPDATE articles SET title=?, content=?, summary=?, tags=?, category=? WHERE id=?",
+		a.Title, a.Content, a.Summary, a.Tags, a.Category, id)
 	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
 	writeJSON(w, 200, APIResponse{Success: true})
 }
@@ -236,48 +211,6 @@ func adminUpdateArticle(w http.ResponseWriter, r *http.Request) {
 func adminDeleteArticle(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, "/api/admin/articles/")
 	db.Exec("DELETE FROM articles WHERE id=?", id)
-	writeJSON(w, 200, APIResponse{Success: true})
-}
-
-func adminGetMusic(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT id, title, artist, album, platform_url, platform, song_id, description, created_at FROM music_list ORDER BY created_at DESC")
-	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
-	defer rows.Close()
-	var list []Music
-	for rows.Next() {
-		var m Music
-		rows.Scan(&m.ID, &m.Title, &m.Artist, &m.Album, &m.PlatformURL, &m.Platform, &m.SongID, &m.Description, &m.CreatedAt)
-		list = append(list, m)
-	}
-	if list == nil { list = []Music{} }
-	writeJSON(w, 200, APIResponse{Success: true, Data: list})
-}
-
-func adminCreateMusic(w http.ResponseWriter, r *http.Request) {
-	var m Music
-	json.NewDecoder(r.Body).Decode(&m)
-	if m.Platform == "" { m.Platform = "netease" }
-	res, err := db.Exec("INSERT INTO music_list (title, artist, album, platform_url, platform, song_id, description) VALUES (?,?,?,?,?,?,?)",
-		m.Title, m.Artist, m.Album, m.PlatformURL, m.Platform, m.SongID, m.Description)
-	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
-	id, _ := res.LastInsertId()
-	writeJSON(w, 201, APIResponse{Success: true, Data: map[string]int64{"id": id}})
-}
-
-func adminUpdateMusic(w http.ResponseWriter, r *http.Request) {
-	id := strings.TrimPrefix(r.URL.Path, "/api/admin/music/")
-	var m Music
-	json.NewDecoder(r.Body).Decode(&m)
-	if m.Platform == "" { m.Platform = "netease" }
-	_, err := db.Exec("UPDATE music_list SET title=?, artist=?, album=?, platform_url=?, platform=?, song_id=?, description=? WHERE id=?",
-		m.Title, m.Artist, m.Album, m.PlatformURL, m.Platform, m.SongID, m.Description, id)
-	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
-	writeJSON(w, 200, APIResponse{Success: true})
-}
-
-func adminDeleteMusic(w http.ResponseWriter, r *http.Request) {
-	id := strings.TrimPrefix(r.URL.Path, "/api/admin/music/")
-	db.Exec("DELETE FROM music_list WHERE id=?", id)
 	writeJSON(w, 200, APIResponse{Success: true})
 }
 
@@ -294,7 +227,6 @@ func router(w http.ResponseWriter, r *http.Request) {
 	// Public routes
 	if path == "/api/articles" && r.Method == "GET" { getArticles(w, r); return }
 	if strings.HasPrefix(path, "/api/articles/") && r.Method == "GET" { getArticle(w, r); return }
-	if path == "/api/music" && r.Method == "GET" { getMusicList(w, r); return }
 
 	// Admin login
 	if path == "/api/admin/login" && r.Method == "POST" { adminLogin(w, r); return }
@@ -312,10 +244,6 @@ func router(w http.ResponseWriter, r *http.Request) {
 	if path == "/api/admin/articles" && r.Method == "POST" { adminCreateArticle(w, r); return }
 	if strings.HasPrefix(path, "/api/admin/articles/") && r.Method == "PUT" { adminUpdateArticle(w, r); return }
 	if strings.HasPrefix(path, "/api/admin/articles/") && r.Method == "DELETE" { adminDeleteArticle(w, r); return }
-	if path == "/api/admin/music" && r.Method == "GET" { adminGetMusic(w, r); return }
-	if path == "/api/admin/music" && r.Method == "POST" { adminCreateMusic(w, r); return }
-	if strings.HasPrefix(path, "/api/admin/music/") && r.Method == "PUT" { adminUpdateMusic(w, r); return }
-	if strings.HasPrefix(path, "/api/admin/music/") && r.Method == "DELETE" { adminDeleteMusic(w, r); return }
 
 	writeJSON(w, 404, APIResponse{Success: false, Message: "接口不存在"})
 }
@@ -346,21 +274,6 @@ func initDB() {
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`)
 
 	db.Exec("ALTER TABLE articles ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT 'blog' AFTER tags")
-
-	db.Exec(`CREATE TABLE IF NOT EXISTS music_list (
-		id INT AUTO_INCREMENT PRIMARY KEY,
-		title VARCHAR(255) NOT NULL,
-		artist VARCHAR(255) NOT NULL,
-		album VARCHAR(255) DEFAULT '',
-		platform_url VARCHAR(500) DEFAULT '',
-		platform VARCHAR(20) DEFAULT 'netease',
-		song_id VARCHAR(100) DEFAULT '',
-		description TEXT,
-		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`)
-
-	db.Exec("ALTER TABLE music_list ADD COLUMN IF NOT EXISTS platform VARCHAR(20) DEFAULT 'netease' AFTER platform_url")
-	db.Exec("ALTER TABLE music_list ADD COLUMN IF NOT EXISTS song_id VARCHAR(100) DEFAULT '' AFTER platform")
 
 	db.Exec(`CREATE TABLE IF NOT EXISTS users (
 		id INT AUTO_INCREMENT PRIMARY KEY,
