@@ -1,5 +1,5 @@
 ﻿<template>
-  <div style="padding-top:32px;padding-bottom:80px;max-width:720px;margin:0 auto;padding-left:24px;padding-right:24px;">
+  <div style="padding-top:32px;padding-bottom:80px;max-width:1100px;margin:0 auto;padding-left:24px;padding-right:24px;">
     <!-- Login -->
     <div v-if="!isLoggedIn" style="max-width:400px;margin:80px auto;">
       <h1 style="font-size:1.8rem;margin-bottom:24px;text-align:center;">管理员登录</h1>
@@ -102,7 +102,16 @@
     </div>
 
     <!-- Toast -->
-    <div v-if="toast" :class="['toast', 'toast-' + toast.type]">{{ toast.msg }}</div>
+    <Teleport to="body">
+      <Transition name="toast-fade">
+        <div v-if="toast" class="toast-overlay" @click.self="toast = null">
+          <div :class="['toast-box', 'toast-' + toast.type]">
+            <span class="toast-icon">{{ toast.type === 'success' ? '?' : toast.type === 'error' ? '?' : '!' }}</span>
+            <span class="toast-msg">{{ toast.msg }}</span>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -112,6 +121,63 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
 import { adminAPI } from '../api'
 import { marked } from 'marked'
+import hljs from 'highlight.js/lib/core'
+import 'highlight.js/styles/github.css'
+import javascript from 'highlight.js/lib/languages/javascript'
+import python from 'highlight.js/lib/languages/python'
+import go from 'highlight.js/lib/languages/go'
+import bash from 'highlight.js/lib/languages/bash'
+import css from 'highlight.js/lib/languages/css'
+import json from 'highlight.js/lib/languages/json'
+import xml from 'highlight.js/lib/languages/xml'
+import sql from 'highlight.js/lib/languages/sql'
+import yaml from 'highlight.js/lib/languages/yaml'
+import java from 'highlight.js/lib/languages/java'
+import cpp from 'highlight.js/lib/languages/cpp'
+import rust from 'highlight.js/lib/languages/rust'
+import typescript from 'highlight.js/lib/languages/typescript'
+import plaintext from 'highlight.js/lib/languages/plaintext'
+
+hljs.registerLanguage('javascript', javascript)
+hljs.registerLanguage('js', javascript)
+hljs.registerLanguage('python', python)
+hljs.registerLanguage('py', python)
+hljs.registerLanguage('go', go)
+hljs.registerLanguage('golang', go)
+hljs.registerLanguage('bash', bash)
+hljs.registerLanguage('shell', bash)
+hljs.registerLanguage('sh', bash)
+hljs.registerLanguage('css', css)
+hljs.registerLanguage('json', json)
+hljs.registerLanguage('xml', xml)
+hljs.registerLanguage('html', xml)
+hljs.registerLanguage('sql', sql)
+hljs.registerLanguage('mysql', sql)
+hljs.registerLanguage('yaml', yaml)
+hljs.registerLanguage('yml', yaml)
+hljs.registerLanguage('java', java)
+hljs.registerLanguage('cpp', cpp)
+hljs.registerLanguage('c', cpp)
+hljs.registerLanguage('rust', rust)
+hljs.registerLanguage('rs', rust)
+hljs.registerLanguage('typescript', typescript)
+hljs.registerLanguage('ts', typescript)
+hljs.registerLanguage('text', plaintext)
+hljs.registerLanguage('plaintext', plaintext)
+
+marked.use({ async: false })
+
+const origCode = marked.Renderer.prototype.code
+marked.Renderer.prototype.code = function(token) {
+  const lang = token.lang || ''
+  const code = token.text || ''
+  if (lang && hljs.getLanguage(lang)) {
+    const result = hljs.highlight(code, { language: lang })
+    return '<pre><code class="hljs language-' + lang + '">' + result.value + '</code></pre>'
+  }
+  const result = hljs.highlightAuto(code)
+  return '<pre><code class="hljs">' + result.value + '</code></pre>'
+}
 
 const router = useRouter()
 const auth = useAuthStore()

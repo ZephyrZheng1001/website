@@ -103,6 +103,7 @@ hljs.registerLanguage('yml', yaml)
 hljs.registerLanguage('java', java)
 hljs.registerLanguage('cpp', cpp)
 hljs.registerLanguage('c', cpp)
+hljs.registerLanguage('mysql', sql)
 
 const renderer = new marked.Renderer()
 let headingCounter = 0
@@ -111,15 +112,26 @@ renderer.heading = function({ text, depth }) {
   return '<h' + depth + ' id="' + id + '">' + text + '</h' + depth + '>'
 }
 
-marked.setOptions({
+marked.use({
   renderer,
-  highlight: function(code, lang) {
-    if (lang && hljs.getLanguage(lang)) {
-      return hljs.highlight(code, { language: lang }).value
-    }
-    return hljs.highlightAuto(code).value
+  async: false,
+  hooks: {
+    preprocess(markdown) { return markdown }
   },
+  extensions: [],
 })
+
+const origCode = marked.Renderer.prototype.code
+marked.Renderer.prototype.code = function(token) {
+  const lang = token.lang || ''
+  const code = token.text || ''
+  if (lang && hljs.getLanguage(lang)) {
+    const result = hljs.highlight(code, { language: lang })
+    return '<pre><code class="hljs language-' + lang + '">' + result.value + '</code></pre>'
+  }
+  const result = hljs.highlightAuto(code)
+  return '<pre><code class="hljs">' + result.value + '</code></pre>'
+}
 
 const route = useRoute()
 const article = ref(null)

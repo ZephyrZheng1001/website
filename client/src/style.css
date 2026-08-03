@@ -256,11 +256,110 @@ a:hover { color: #236b60; }
   letter-spacing: 1.5px;
   margin-bottom: 16px;
 }
+/* ---- Toast ---- */
+.toast-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 80px;
+  z-index: 9999;
+  pointer-events: none;
+}
+.toast-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  pointer-events: auto;
+  min-width: 200px;
+  max-width: 400px;
+}
+.toast-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.toast-success .toast-icon {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+.toast-error .toast-icon {
+  background: #fce4ec;
+  color: #c62828;
+}
+.toast-warning .toast-icon {
+  background: #fff3e0;
+  color: #e65100;
+}
+.toast-msg {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--text);
+}
+.toast-fade-enter-active { transition: all 0.3s ease-out; }
+.toast-fade-leave-active { transition: all 0.2s ease-in; }
+.toast-fade-enter-from { opacity: 0; transform: translateY(-16px) scale(0.95); }
+.toast-fade-leave-to { opacity: 0; transform: translateY(-8px) scale(0.97); }
+
+[data-theme="dark"] .toast-box {
+  background: var(--bg-card);
+  border-color: var(--border);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+
+
+/* ---- Editor (Admin) ---- */
+.editor-wrap {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  min-height: 520px;
+}
+.editor-wrap textarea {
+  resize: none;
+  min-height: 520px;
+  height: 100%;
+  font-size: 0.92rem;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  line-height: 1.7;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+}
+.editor-wrap textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+.preview-pane {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  overflow-y: auto;
+  min-height: 520px;
+}
 
 @media (max-width: 768px) {
   .editor-wrap { grid-template-columns: 1fr; }
   .nav-links { gap: 18px; }
 }
+
 
 [data-theme="dark"] {
   --bg: #111518;
