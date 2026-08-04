@@ -30,6 +30,7 @@
       <div style="display:flex;gap:8px;margin-bottom:24px;">
         <button class="btn" :class="tab==='articles'?'btn-primary':'btn-outline'" @click="tab='articles'">文章管理</button>
         <button class="btn" :class="tab==='write'?'btn-primary':'btn-outline'" @click="openWrite()">写文章</button>
+        <button class="btn" :class="tab==='studyCats'?'btn-primary':'btn-outline'" @click="tab='studyCats'">子分类</button>
         <button class="btn" :class="tab==='password'?'btn-primary':'btn-outline'" @click="tab='password'">改密码</button>
       </div>
 
@@ -60,8 +61,27 @@
             <option value="blog">技术文章</option>
             <option value="leetcode">算法笔记</option>
             <option value="projects">项目</option>
+            <option value="study">学习笔记</option>
             <option value="notes">碎碎念</option>
           </select>
+        </div>
+        <div v-if="editorForm.category === 'study'" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-group">
+            <label>子分类</label>
+            <select v-model="editorForm.subcategory">
+              <option value="">未分类</option>
+              <option v-for="sc in studyColumns" :key="sc" :value="sc">{{ sc }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>学习状态</label>
+            <select v-model="editorForm.study_status">
+              <option value="">学习中</option>
+              <option value="todo">待开始</option>
+              <option value="doing">学习中</option>
+              <option value="done">已完成</option>
+            </select>
+          </div>
         </div>
         <div class="form-group">
           <label>摘要</label>
@@ -78,6 +98,27 @@
         <div style="margin-top:16px;">
           <button class="btn btn-primary" @click="saveArticle">{{ editingId ? '更新文章' : '发布文章' }}</button>
           <button class="btn btn-outline" style="margin-left:8px;" @click="tab='articles'">取消</button>
+        </div>
+      </div>
+
+      <!-- Study Categories -->
+      <div v-if="tab==='studyCats'" style="max-width:600px;">
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <input v-model="newCat.name" placeholder="分类名称" style="flex:1;" @keyup.enter="addStudyCat" />
+          <input v-model="newCat.icon" placeholder="图标" style="width:80px;" @keyup.enter="addStudyCat" />
+          <button class="btn btn-primary" @click="addStudyCat">添加</button>
+        </div>
+        <div v-if="studyCatList.length===0" style="text-align:center;color:var(--text-muted);padding:40px;">暂无子分类</div>
+        <div v-for="(cat, i) in studyCatList" :key="cat.id" class="card" style="margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;">
+          <div>
+            <span v-if="cat.icon" style="margin-right:8px;">{{ cat.icon }}</span>
+            <strong>{{ cat.name }}</strong>
+          </div>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <button class="btn btn-outline btn-sm" @click="moveCat(cat, -1)" :disabled="i===0">↑</button>
+            <button class="btn btn-outline btn-sm" @click="moveCat(cat, 1)" :disabled="i===studyCatList.length-1">↓</button>
+            <button class="btn btn-danger btn-sm" @click="deleteStudyCat(cat.id)">删除</button>
+          </div>
         </div>
       </div>
 
@@ -116,10 +157,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../store/auth'
-import { adminAPI } from '../api'
+import { adminAPI, studyCategoryAPI } from '../api'
 import { marked } from 'marked'
 import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/github.css'
@@ -192,8 +233,12 @@ const loginForm = ref({ username: '', password: '' })
 const loginErr = ref('')
 const loginLoading = ref(false)
 
+const studyCatList = ref([])
+const studyColumns = ref([])
+const newCat = ref({ name: '', icon: '' })
+
 const pwForm = ref({ old_password: '', new_password: '', confirm: '' });
-const editorForm = ref({ title: '', content: '', summary: '', tags: '', category: 'blog' })
+const editorForm = ref({ title: '', content: '', summary: '', tags: '', category: 'blog', subcategory: '', study_status: '' })
 
 const previewContent = computed(() => {
   if (!editorForm.value.content) return '<span style="color:#888">预览...</span>'
@@ -216,6 +261,7 @@ async function doLogin() {
   try {
     await auth.login(loginForm.value.username, loginForm.value.password)
     fetchArticles()
+    fetchStudyCats()
   } catch (e) {
     loginErr.value = e?.message || '登录失败'
   } finally {
@@ -234,13 +280,13 @@ async function fetchArticles() {
 function openWrite() {
   tab.value = 'write'
   editingId.value = null
-  editorForm.value = { title: '', content: '', summary: '', tags: '', category: 'blog' }
+  editorForm.value = { title: '', content: '', summary: '', tags: '', category: 'blog', subcategory: '', study_status: '' }
 }
 
 function editArticle(a) {
   tab.value = 'write'
   editingId.value = a.id
-  editorForm.value = { title: a.title, content: a.content, summary: a.summary, tags: a.tags, category: a.category || 'blog' }
+  editorForm.value = { title: a.title, content: a.content, summary: a.summary, tags: a.tags, category: a.category || 'blog', subcategory: a.subcategory || '', study_status: a.study_status || '' }
 }
 
 async function saveArticle() {
@@ -293,9 +339,46 @@ async function changePassword() {
   }
 }
 
+async function fetchStudyCats() {
+  try {
+    const res = await studyCategoryAPI.list();
+    const cats = res.data.categories || res.data || [];
+    studyCatList.value = cats;
+    studyColumns.value = cats.map(c => c.name);
+    console.log('fetchStudyCats result:', studyCatList.value, studyColumns.value);
+  } catch (e) { console.error(e) }
+}
+async function addStudyCat() {
+  if (!newCat.value.name) return
+  try {
+    await studyCategoryAPI.create({ name: newCat.value.name, icon: newCat.value.icon, sort_order: studyCatList.value.length })
+    showToast('子分类已添加')
+    newCat.value = { name: '', icon: '' }
+    fetchStudyCats()
+  } catch (e) { showToast(e?.message || '添加失败', 'error') }
+}
+async function deleteStudyCat(id) {
+  if (!confirm('确定删除此子分类？')) return
+  try { await studyCategoryAPI.delete(id); showToast('已删除'); fetchStudyCats() } catch (e) { showToast(e?.message || '删除失败', 'error') }
+}
+async function moveCat(cat, dir) {
+  const idx = studyCatList.value.findIndex(c => c.id === cat.id)
+  if (idx === -1) return
+  const other = studyCatList.value[idx + dir]
+  if (!other) return
+  try {
+    await studyCategoryAPI.update(cat.id, { ...cat, sort_order: other.sort_order })
+    await studyCategoryAPI.update(other.id, { ...other, sort_order: cat.sort_order })
+    fetchStudyCats()
+  } catch (e) { showToast('排序失败', 'error') }
+}
+
+watch(tab, (val) => {
+  if (val === 'studyCats') fetchStudyCats()
+})
+
 onMounted(() => {
-  if (isLoggedIn.value) {
-    fetchArticles()
-  }
+  fetchArticles()
+  fetchStudyCats()
 })
 </script>

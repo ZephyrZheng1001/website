@@ -1,4 +1,4 @@
-﻿import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 const routes = [
   { path: '/elephant', name: 'Elephant', component: { template: '<div></div>', beforeMount() { window.location.href = '/elephant.html' } } },
@@ -11,6 +11,9 @@ const routes = [
   { path: '/projects/:id', name: 'ProjectArticle', component: () => import('../views/Article.vue') },
   { path: '/notes', name: 'Notes', component: () => import('../views/Blog.vue') },
   { path: '/notes/:id', name: 'NoteArticle', component: () => import('../views/Article.vue') },
+  { path: '/study', name: 'Study', component: () => import('../views/Study.vue') },
+  { path: '/study/:id', name: 'StudyArticle', component: () => import('../views/Article.vue') },
+  { path: '/search', name: 'Search', component: () => import('../views/Search.vue') },
   { path: '/about', name: 'About', component: () => import('../views/About.vue') },
   { path: '/admin', name: 'Admin', component: () => import('../views/Admin.vue') },
 ]

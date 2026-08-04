@@ -4,3 +4,12 @@ dist/
 server.log
 server_err.log
 .env
+server_linux
+*.py
+__pycache__/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.codex/

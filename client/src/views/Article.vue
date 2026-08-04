@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="article-page">
     <div style="padding-top:40px;padding-bottom:80px;max-width:720px;margin:0 auto;padding-left:24px;padding-right:24px;">
       <div v-if="loading" style="text-align:center;color:var(--text-muted);padding:60px;">加载中...</div>
@@ -71,6 +71,8 @@ import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { articleAPI } from '../api'
 import { marked } from 'marked'
+import katex from 'katex'
+import 'katex/dist/katex.min.css'
 import hljs from 'highlight.js/lib/core'
 import 'highlight.js/styles/github.css'
 
@@ -125,6 +127,14 @@ const origCode = marked.Renderer.prototype.code
 marked.Renderer.prototype.code = function(token) {
   const lang = token.lang || ''
   const code = token.text || ''
+    if (lang === 'mermaid') {
+    try {
+      var encoded = btoa(unescape(encodeURIComponent(code.trim())));
+      return '<div class="mermaid-container" style="text-align:center;margin:1em 0"><img src="https://mermaid.ink/img/' + encoded + '" alt="diagram" style="max-width:100%;border-radius:8px" /></div>';
+    } catch(e) {
+      return '<pre><code>' + e.message + '</code></pre>';
+    }
+  }
   if (lang && hljs.getLanguage(lang)) {
     const result = hljs.highlight(code, { language: lang })
     return '<pre><code class="hljs language-' + lang + '">' + result.value + '</code></pre>'
@@ -237,10 +247,32 @@ function injectCopyButtons() {
   })
 }
 
+let mermaidLoaded = false
+function injectMermaid() { /* mermaid rendered as images via mermaid.ink */ } function _injectMermaid_old() {
+  if (!contentRef.value) return
+  const blocks = contentRef.value.querySelectorAll('.mermaid')
+  if (blocks.length === 0) return
+
+  function doIt() {
+    mermaid.initialize({ startOnLoad: false, theme: 'default' })
+    mermaid.run({ nodes: Array.from(blocks) })
+  }
+
+  if (mermaidLoaded) {
+    doIt()
+  } else {
+    const s = document.createElement('script')
+    s.src = 'https://unpkg.com/mermaid@11/dist/mermaid.min.js'
+    s.onload = () => { mermaidLoaded = true; doIt() }
+    document.head.appendChild(s)
+  }
+}
+
 watch(renderedContent, async () => {
   await nextTick()
   extractTOC()
   injectCopyButtons()
+  injectMermaid()
 })
 
 onMounted(async () => {
@@ -252,6 +284,7 @@ onMounted(async () => {
     await nextTick()
     extractTOC()
     injectCopyButtons()
+    injectMermaid()
     window.addEventListener('scroll', onScroll, { passive: true })
   } catch (e) {
     console.error(e)

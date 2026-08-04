@@ -1,5 +1,5 @@
-﻿<template>
-  <div style="padding-top:32px;padding-bottom:80px;max-width:900px;margin:0 auto;padding-left:24px;padding-right:24px;">
+<template>
+  <div style="padding-top:24px;padding-bottom:60px;max-width:900px;margin:0 auto;padding-left:24px;padding-right:24px;">
     <h1 style="font-size:2rem;margin-bottom:8px;">{{ columnInfo.icon }} {{ columnInfo.title }}</h1>
     <p style="color:var(--text-muted);margin-bottom:32px;">{{ columnInfo.desc }}</p>
 
@@ -10,7 +10,7 @@
           <router-link
             v-for="col in allColumns"
             :key="col.key"
-            :to="col.key === 'blog' ? '/blog' : '/' + col.key"
+            :to="'/' + col.key"
             :class="['sidebar-link', { active: category === col.key }]"
           >
             <span class="sidebar-icon">{{ col.icon }}</span>
@@ -84,6 +84,7 @@ const columns = {
   leetcode: { title: '算法笔记', desc: '算法题解与刷题笔记', icon: '💡' },
   projects: { title: '项目', desc: '项目复盘与技术方案', icon: '🚀' },
   notes: { title: '碎碎念', desc: '日常随想与生活记录', icon: '💬' },
+  study: { title: '学习笔记', desc: '系统化学习记录', icon: '📖' },
 }
 
 const allColumns = [
@@ -91,6 +92,7 @@ const allColumns = [
   { key: 'leetcode', title: '算法笔记', icon: '💡', count: null },
   { key: 'projects', title: '项目', icon: '🚀', count: null },
   { key: 'notes', title: '碎碎念', icon: '💬', count: null },
+  { key: 'study', title: '学习笔记', icon: '📖', count: null },
 ]
 
 const routeName = computed(() => route.name?.toLowerCase() || 'blog')
@@ -151,11 +153,13 @@ async function fetchColumnCounts() {
       articleAPI.list({ category: 'leetcode', limit: 1 }),
       articleAPI.list({ category: 'projects', limit: 1 }),
       articleAPI.list({ category: 'notes', limit: 1 }),
+      articleAPI.list({ category: 'study', limit: 1 }),
     ])
     allColumns[0].count = results[0].data.total || 0
     allColumns[1].count = results[1].data.total || 0
     allColumns[2].count = results[2].data.total || 0
     allColumns[3].count = results[3].data.total || 0
+    allColumns[4].count = results[4].data.total || 0
   } catch (e) { /* silent */ }
 }
 

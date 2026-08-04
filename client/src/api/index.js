@@ -30,6 +30,14 @@ export const articleAPI = {
 }
 
 // ---- Admin APIs (need auth) ----
+// ---- Admin APIs (need auth) ----
+export const studyCategoryAPI = {
+  list: () => api.get('/study-categories'),
+  create: (data) => api.post('/admin/study-categories', data),
+  update: (id, data) => api.put(`/admin/study-categories/${id}`, data),
+  delete: (id) => api.delete(`/admin/study-categories/${id}`),
+}
+
 export const adminAPI = {
   login: (data) => api.post('/admin/login', data),
   createArticle: (data) => api.post('/admin/articles', data),

@@ -19,14 +19,26 @@ var db *sql.DB
 var jwtSecret = []byte("zephyr-jwt-secret-key-2026")
 
 type Article struct {
+	ID          int       `json:"id"`
+	Title       string    `json:"title"`
+	Content     string    `json:"content"`
+	Summary     string    `json:"summary"`
+	Tags        string    `json:"tags"`
+	Category    string    `json:"category"`
+	Subcategory string    `json:"subcategory"`
+	StudyStatus string    `json:"study_status"`
+	IsPinned    bool      `json:"is_pinned"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+
+type StudyCategory struct {
 	ID        int       `json:"id"`
-	Title     string    `json:"title"`
-	Content   string    `json:"content"`
-	Summary   string    `json:"summary"`
-	Tags      string    `json:"tags"`
-	Category  string    `json:"category"`
+	Name      string    `json:"name"`
+	Icon      string    `json:"icon"`
+	SortOrder int       `json:"sort_order"`
 	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type APIResponse struct {
@@ -85,7 +97,7 @@ func getArticles(w http.ResponseWriter, r *http.Request) {
 		where = " WHERE " + strings.Join(conditions, " AND ")
 	}
 
-	query := "SELECT id, title, summary, tags, category, created_at, updated_at FROM articles" + where + " ORDER BY created_at DESC LIMIT ? OFFSET ?"
+	query := "SELECT id, title, summary, tags, category, subcategory, study_status, is_pinned, created_at, updated_at FROM articles" + where + " ORDER BY is_pinned DESC, created_at DESC LIMIT ? OFFSET ?"
 	countQuery := "SELECT COUNT(*) FROM articles" + where
 
 	args = append(args, limit, offset)
@@ -96,7 +108,7 @@ func getArticles(w http.ResponseWriter, r *http.Request) {
 	var articles []Article
 	for rows.Next() {
 		var a Article
-		rows.Scan(&a.ID, &a.Title, &a.Summary, &a.Tags, &a.Category, &a.CreatedAt, &a.UpdatedAt)
+		rows.Scan(&a.ID, &a.Title, &a.Summary, &a.Tags, &a.Category, &a.Subcategory, &a.StudyStatus, &a.IsPinned, &a.CreatedAt, &a.UpdatedAt)
 		articles = append(articles, a)
 	}
 	if articles == nil { articles = []Article{} }
@@ -113,8 +125,8 @@ func getArticles(w http.ResponseWriter, r *http.Request) {
 func getArticle(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, "/api/articles/")
 	var a Article
-	err := db.QueryRow("SELECT id, title, content, summary, tags, category, created_at, updated_at FROM articles WHERE id=?", id).
-		Scan(&a.ID, &a.Title, &a.Content, &a.Summary, &a.Tags, &a.Category, &a.CreatedAt, &a.UpdatedAt)
+	err := db.QueryRow("SELECT id, title, content, summary, tags, category, subcategory, study_status, is_pinned, created_at, updated_at FROM articles WHERE id=?", id).
+		Scan(&a.ID, &a.Title, &a.Content, &a.Summary, &a.Tags, &a.Category, &a.Subcategory, &a.StudyStatus, &a.IsPinned, &a.CreatedAt, &a.UpdatedAt)
 	if err == sql.ErrNoRows { writeJSON(w, 404, APIResponse{Success: false, Message: "文章不存在"}); return }
 	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
 	// Get prev and next articles in same category
@@ -174,25 +186,25 @@ func adminChangePassword(w http.ResponseWriter, r *http.Request, username string
 }
 
 func adminGetArticles(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT id, title, content, summary, tags, category, created_at, updated_at FROM articles ORDER BY created_at DESC")
+	rows, err := db.Query("SELECT id, title, content, summary, tags, category, subcategory, study_status, is_pinned, created_at, updated_at FROM articles ORDER BY created_at DESC")
 	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
 	defer rows.Close()
 
 	var articles []Article
 	for rows.Next() {
 		var a Article
-		rows.Scan(&a.ID, &a.Title, &a.Content, &a.Summary, &a.Tags, &a.Category, &a.CreatedAt, &a.UpdatedAt)
+		rows.Scan(&a.ID, &a.Title, &a.Content, &a.Summary, &a.Tags, &a.Category, &a.Subcategory, &a.StudyStatus, &a.IsPinned, &a.CreatedAt, &a.UpdatedAt)
 		articles = append(articles, a)
 	}
 	if articles == nil { articles = []Article{} }
-	writeJSON(w, 200, APIResponse{Success: true, Data: articles})
+	writeJSON(w, 200, APIResponse{Success: true, Data: map[string]interface{}{"articles": articles}})
 }
 
 func adminCreateArticle(w http.ResponseWriter, r *http.Request) {
 	var a Article
 	json.NewDecoder(r.Body).Decode(&a)
-	res, err := db.Exec("INSERT INTO articles (title, content, summary, tags, category) VALUES (?,?,?,?,?)",
-		a.Title, a.Content, a.Summary, a.Tags, a.Category)
+	res, err := db.Exec("INSERT INTO articles (title, content, summary, tags, category, subcategory, study_status, is_pinned) VALUES (?,?,?,?,?,?,?,?)",
+		a.Title, a.Content, a.Summary, a.Tags, a.Category, a.Subcategory, a.StudyStatus, a.IsPinned)
 	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
 	id, _ := res.LastInsertId()
 	writeJSON(w, 200, APIResponse{Success: true, Data: map[string]int64{"id": id}})
@@ -202,8 +214,8 @@ func adminUpdateArticle(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, "/api/admin/articles/")
 	var a Article
 	json.NewDecoder(r.Body).Decode(&a)
-	_, err := db.Exec("UPDATE articles SET title=?, content=?, summary=?, tags=?, category=? WHERE id=?",
-		a.Title, a.Content, a.Summary, a.Tags, a.Category, id)
+	_, err := db.Exec("UPDATE articles SET title=?, content=?, summary=?, tags=?, category=?, subcategory=?, study_status=?, is_pinned=? WHERE id=?",
+		a.Title, a.Content, a.Summary, a.Tags, a.Category, a.Subcategory, a.StudyStatus, a.IsPinned, id)
 	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
 	writeJSON(w, 200, APIResponse{Success: true})
 }
@@ -216,6 +228,73 @@ func adminDeleteArticle(w http.ResponseWriter, r *http.Request) {
 
 // ====================== Router ======================
 
+
+// ====================== Search Handler ======================
+
+
+func getStudyCategories(w http.ResponseWriter, r *http.Request) {
+	rows, err := db.Query("SELECT id, name, icon, sort_order, created_at FROM study_categories ORDER BY sort_order ASC, id ASC")
+	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
+	defer rows.Close()
+	var cats []StudyCategory
+	for rows.Next() {
+		var sc StudyCategory
+		rows.Scan(&sc.ID, &sc.Name, &sc.Icon, &sc.SortOrder, &sc.CreatedAt)
+		cats = append(cats, sc)
+	}
+	if cats == nil { cats = []StudyCategory{} }
+	writeJSON(w, 200, APIResponse{Success: true, Data: map[string]interface{}{"categories": cats}})
+}
+
+func adminCreateStudyCategory(w http.ResponseWriter, r *http.Request) {
+	var sc StudyCategory
+	json.NewDecoder(r.Body).Decode(&sc)
+	res, err := db.Exec("INSERT INTO study_categories (name, icon, sort_order) VALUES (?,?,?)", sc.Name, sc.Icon, sc.SortOrder)
+	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
+	id, _ := res.LastInsertId()
+	writeJSON(w, 200, APIResponse{Success: true, Data: map[string]interface{}{"id": id}})
+}
+
+func adminUpdateStudyCategory(w http.ResponseWriter, r *http.Request) {
+	id := strings.TrimPrefix(r.URL.Path, "/api/admin/study-categories/")
+	var sc StudyCategory
+	json.NewDecoder(r.Body).Decode(&sc)
+	db.Exec("UPDATE study_categories SET name=?, icon=?, sort_order=? WHERE id=?", sc.Name, sc.Icon, sc.SortOrder, id)
+	writeJSON(w, 200, APIResponse{Success: true})
+}
+
+func adminDeleteStudyCategory(w http.ResponseWriter, r *http.Request) {
+	id := strings.TrimPrefix(r.URL.Path, "/api/admin/study-categories/")
+	db.Exec("DELETE FROM study_categories WHERE id=?", id)
+	writeJSON(w, 200, APIResponse{Success: true})
+}
+
+func searchArticles(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query().Get("q")
+	if q == "" {
+		writeJSON(w, 200, APIResponse{Success: true, Data: []Article{}})
+		return
+	}
+	query := "SELECT id, title, summary, tags, category, subcategory, study_status, is_pinned, created_at, updated_at FROM articles WHERE title LIKE ? OR content LIKE ? OR summary LIKE ? OR tags LIKE ? ORDER BY is_pinned DESC, created_at DESC LIMIT 50"
+	like := "%" + q + "%"
+	rows, err := db.Query(query, like, like, like, like)
+	if err != nil {
+		writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()})
+		return
+	}
+	defer rows.Close()
+	var articles []Article
+	for rows.Next() {
+		var a Article
+		rows.Scan(&a.ID, &a.Title, &a.Summary, &a.Tags, &a.Category, &a.Subcategory, &a.StudyStatus, &a.IsPinned, &a.CreatedAt, &a.UpdatedAt)
+		articles = append(articles, a)
+	}
+	if articles == nil {
+		articles = []Article{}
+	}
+	writeJSON(w, 200, APIResponse{Success: true, Data: articles})
+}
+
 func router(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
@@ -225,8 +304,10 @@ func router(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 
 	// Public routes
+	if path == "/api/search" && r.Method == "GET" { searchArticles(w, r); return }
 	if path == "/api/articles" && r.Method == "GET" { getArticles(w, r); return }
 	if strings.HasPrefix(path, "/api/articles/") && r.Method == "GET" { getArticle(w, r); return }
+	if path == "/api/study-categories" && r.Method == "GET" { getStudyCategories(w, r); return }
 
 	// Admin login
 	if path == "/api/admin/login" && r.Method == "POST" { adminLogin(w, r); return }
@@ -239,6 +320,10 @@ func router(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if path == "/api/admin/password" && r.Method == "PUT" { adminChangePassword(w, r, username); return }
+	if path == "/api/admin/study-categories" && r.Method == "GET" { getStudyCategories(w, r); return }
+	if path == "/api/admin/study-categories" && r.Method == "POST" { adminCreateStudyCategory(w, r); return }
+	if strings.HasPrefix(path, "/api/admin/study-categories/") && r.Method == "PUT" { adminUpdateStudyCategory(w, r); return }
+	if strings.HasPrefix(path, "/api/admin/study-categories/") && r.Method == "DELETE" { adminDeleteStudyCategory(w, r); return }
 
 	if path == "/api/admin/articles" && r.Method == "GET" { adminGetArticles(w, r); return }
 	if path == "/api/admin/articles" && r.Method == "POST" { adminCreateArticle(w, r); return }
@@ -269,11 +354,17 @@ func initDB() {
 		summary VARCHAR(500) DEFAULT '',
 		tags VARCHAR(255) DEFAULT '',
 		category VARCHAR(50) DEFAULT 'blog',
+		subcategory VARCHAR(50) DEFAULT '',
+		study_status VARCHAR(20) DEFAULT '',
+		is_pinned TINYINT(1) DEFAULT 0,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`)
 
 	db.Exec("ALTER TABLE articles ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT 'blog' AFTER tags")
+	db.Exec("ALTER TABLE articles ADD COLUMN IF NOT EXISTS subcategory VARCHAR(50) DEFAULT '' AFTER category")
+	db.Exec("ALTER TABLE articles ADD COLUMN IF NOT EXISTS study_status VARCHAR(20) DEFAULT '' AFTER subcategory")
+	db.Exec("ALTER TABLE articles ADD COLUMN IF NOT EXISTS is_pinned TINYINT(1) DEFAULT 0 AFTER study_status")
 
 	db.Exec(`CREATE TABLE IF NOT EXISTS users (
 		id INT AUTO_INCREMENT PRIMARY KEY,
@@ -289,6 +380,13 @@ func initDB() {
 		db.Exec("INSERT INTO users (username, password_hash) VALUES (?,?)", "admin", string(hash))
 		fmt.Println("[init] Default admin: admin / admin123")
 	}
+		db.Exec(`CREATE TABLE IF NOT EXISTS study_categories (
+		id INT AUTO_INCREMENT PRIMARY KEY,
+		name VARCHAR(100) NOT NULL,
+		icon VARCHAR(10) DEFAULT '',
+		sort_order INT DEFAULT 0,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`)
 	fmt.Println("[init] Database ready")
 }
 
