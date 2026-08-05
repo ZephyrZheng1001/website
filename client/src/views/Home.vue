@@ -110,7 +110,7 @@ const columns = [
 
 const timelineItems = ref([])
 const stats = ref({ articles: 0, visitors: 0 })
-const dailyWord = ref(null)
+const dailyWord = ref(window.__DAILY_WORD__ || null)
 const todayDate = ref('')
 
 const yp = calcYearProgress()
@@ -151,12 +151,16 @@ onMounted(async () => {
       const uvData = await uvRes.json()
       stats.value.visitors = uvData.data?.visitors || uvData.visitors || 0
     } catch(e) {}
-    // Fetch daily word
-    try {
-      var dwRes = await fetch('/api/daily-word')
-      var dwData = await dwRes.json()
-      if (dwData.success) dailyWord.value = dwData.data
-    } catch(e) {}
+    // Daily word from build-time injection, with API fallback
+    if (window.__DAILY_WORD__) {
+      dailyWord.value = window.__DAILY_WORD__
+    } else {
+      try {
+        var dwRes = await fetch('/api/daily-word')
+        var dwData = await dwRes.json()
+        if (dwData.success) dailyWord.value = dwData.data
+      } catch(e) {}
+    }
     var d = new Date()
     todayDate.value = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0')
 
