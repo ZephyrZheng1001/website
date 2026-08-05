@@ -316,12 +316,12 @@ func recordVisitor(w http.ResponseWriter, r *http.Request) {
 	}
 	ua := r.Header.Get("User-Agent")
 	today := time.Now().Format("2006-01-02")
-	db.Exec("INSERT IGNORE INTO site_visitors (ip, user_agent, visit_date) VALUES (?,?,?)", ip, ua, today)
+	db.Exec("INSERT INTO site_visitors (ip, user_agent, visit_date) VALUES (?,?,?)", ip, ua, today)
 }
 
 func getVisitorCount(w http.ResponseWriter, r *http.Request) {
 	var count int
-	db.QueryRow("SELECT COUNT(DISTINCT ip) FROM site_visitors").Scan(&count)
+	db.QueryRow("SELECT COUNT(DISTINCT CONCAT(ip, user_agent)) FROM site_visitors").Scan(&count)
 	writeJSON(w, 200, APIResponse{Success: true, Data: map[string]interface{}{"visitors": count}})
 }
 

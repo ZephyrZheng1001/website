@@ -12,7 +12,7 @@
 
     <section style="display:flex;gap:48px;padding:18px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:44px;font-size:0.88rem;color:var(--text-muted);">
       <div><strong style="color:var(--accent);">{{ stats.articles }}</strong> 篇文章</div>
-      <div><strong style="color:var(--accent);">Always</strong> 在线</div>
+      <div><strong style="color:var(--accent);">{{ stats.visitors }}</strong> 位访客</div>
     </section>
 
     <section style="margin-bottom:40px;">
@@ -90,7 +90,7 @@ const columns = [
 ]
 
 const timelineItems = ref([])
-const stats = ref({ articles: 0 })
+const stats = ref({ articles: 0, visitors: 0 })
 
 const yp = calcYearProgress()
 const currentYear = ref(yp.year)
@@ -124,6 +124,12 @@ onMounted(async () => {
     const res = await articleAPI.list({ limit: 200 })
     const all = res.data.articles || []
     stats.value.articles = res.data.total || all.length
+    // Fetch visitor count
+    try {
+      const uvRes = await fetch('/api/visitors/count')
+      const uvData = await uvRes.json()
+      stats.value.visitors = uvData.data?.visitors || uvData.visitors || 0
+    } catch(e) {}
 
     const groups = {}
     all.forEach(a => {

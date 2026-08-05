@@ -81,7 +81,7 @@
     </nav>
 
     <footer class="site-footer">
-      <p>{{ siteStats.articles }} 篇文章 · 约 {{ siteStats.words }} 字 · {{ siteStats.views }} 次阅读 · {{ siteStats.visitors }} 位访客 · <router-link to="/admin">管理</router-link></p>
+      <p>{{ siteStats.articles }} 篇文章 · 约 {{ siteStats.words }} 字 · {{ siteStats.views }} 次阅读 · <router-link to="/admin">管理</router-link></p>
       <p><a href="/#/about">关于</a> · <a href="https://github.com/ZephyrZheng1001" target="_blank">GitHub</a> · <a href="/resume.pdf" target="_blank">简历</a></p>
       <p style="margin-top:6px;font-size:0.7rem;">&copy; 2026 Zephyr · Powered by Go &amp; Vue</p>
     </footer>
@@ -106,21 +106,15 @@ async function fetchSiteStats() {
       totalWords += (a.content || a.summary || '').length
       totalViews += (a.view_count || 0)
     })
-    // Record visitor + get real count from server
+    // Record visitor silently
     fetch('/api/visitor', { method: 'POST' }).catch(function(){})
-    var uvCount = 0
-    try {
-      var uvRes = await fetch('/api/visitors/count')
-      var uvData = await uvRes.json()
-      uvCount = uvData.data?.visitors || uvData.visitors || 0
-    } catch(e) {}
-    siteStats.value = { articles: articles.length, words: Math.round(totalWords / 2), views: totalViews, visitors: uvCount }
+    siteStats.value = { articles: articles.length, words: Math.round(totalWords / 2), views: totalViews }
   } catch(e) {}
 }
 
 onMounted(() => window.addEventListener('scroll', updateProgress, { passive: true }))
 onUnmounted(() => window.removeEventListener('scroll', updateProgress))
-const siteStats = ref({ articles: 0, words: 0, views: 0, visitors: 0 })
+const siteStats = ref({ articles: 0, words: 0, views: 0 })
 const showBackTop = ref(false)
 function onMainScroll() { showBackTop.value = window.scrollY > 400 }
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }) }
