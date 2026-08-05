@@ -98,7 +98,7 @@ func getArticles(w http.ResponseWriter, r *http.Request) {
 		where = " WHERE " + strings.Join(conditions, " AND ")
 	}
 
-	query := "SELECT id, title, summary, tags, category, subcategory, study_status, is_pinned, view_count, created_at, updated_at FROM articles" + where + " ORDER BY is_pinned DESC, created_at DESC LIMIT ? OFFSET ?"
+	query := "SELECT id, title, COALESCE(content, summary) as content, summary, tags, category, subcategory, study_status, is_pinned, view_count, created_at, updated_at FROM articles" + where + " ORDER BY is_pinned DESC, created_at DESC LIMIT ? OFFSET ?"
 	countQuery := "SELECT COUNT(*) FROM articles" + where
 
 	args = append(args, limit, offset)
@@ -279,7 +279,7 @@ func searchArticles(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 200, APIResponse{Success: true, Data: []Article{}})
 		return
 	}
-	query := "SELECT id, title, summary, tags, category, subcategory, study_status, is_pinned, view_count, created_at, updated_at FROM articles WHERE title LIKE ? OR content LIKE ? OR summary LIKE ? OR tags LIKE ? ORDER BY is_pinned DESC, created_at DESC LIMIT 50"
+	query := "SELECT id, title, COALESCE(content, summary) as content, summary, tags, category, subcategory, study_status, is_pinned, view_count, created_at, updated_at FROM articles WHERE title LIKE ? OR content LIKE ? OR summary LIKE ? OR tags LIKE ? ORDER BY is_pinned DESC, created_at DESC LIMIT 50"
 	like := "%" + q + "%"
 	rows, err := db.Query(query, like, like, like, like)
 	if err != nil {
