@@ -99,7 +99,6 @@ const allColumns = [
   { key: 'leetcode', title: '算法笔记', icon: '💡', count: null },
   { key: 'projects', title: '项目', icon: '🚀', count: null },
   { key: 'notes', title: '碎碎念', icon: '💬', count: null },
-  { key: 'study', title: '学习笔记', icon: '📓', count: null },
 ]
 
 const routeName = computed(() => route.name?.toLowerCase() || 'blog')
@@ -173,13 +172,11 @@ async function fetchColumnCounts() {
       articleAPI.list({ category: 'leetcode', limit: 1 }),
       articleAPI.list({ category: 'projects', limit: 1 }),
       articleAPI.list({ category: 'notes', limit: 1 }),
-      articleAPI.list({ category: 'study', limit: 1 }),
     ])
     allColumns[0].count = results[0].data.total || 0
     allColumns[1].count = results[1].data.total || 0
     allColumns[2].count = results[2].data.total || 0
     allColumns[3].count = results[3].data.total || 0
-    allColumns[4].count = results[4].data.total || 0
   } catch (e) { /* silent */ }
 }
 
@@ -187,7 +184,7 @@ async function fetchColumnCounts() {
 watch(() => [category.value, route.query.tag], () => { page.value = 1; fetchArticles() })
 onMounted(() => { fetchArticles(); fetchAllTags(); fetchColumnCounts() })
 watch(category, () => { fetchAllTags(); fetchColumnCounts() })
-watch(() => route.fullPath, () => { if (!allColumns[0].count) fetchColumnCounts() })
+watch(() => route.fullPath, () => { fetchColumnCounts() })
 </script>
 
 <style scoped>
