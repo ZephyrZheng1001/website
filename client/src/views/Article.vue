@@ -128,7 +128,8 @@ marked.Renderer.prototype.code = function(token) {
   const lang = token.lang || ''
   const code = token.text || ''
     if (lang === 'mermaid') {
-    return '<div class="mermaid" style="text-align:center;margin:1em 0">' + code.trim() + '</div>';
+    var escaped = code.trim().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return '<div class="mermaid" style="text-align:center;margin:1em 0">' + escaped + '</div>';
   }
   if (lang && hljs.getLanguage(lang)) {
     const result = hljs.highlight(code, { language: lang })
@@ -288,40 +289,31 @@ function injectCopyButtons() {
   })
 }
 
-let mermaidLoaded = false
 function injectMermaid() {
   if (!contentRef.value) return
-  const blocks = contentRef.value.querySelectorAll('.mermaid:not([data-processed])')
-  if (blocks.length === 0) return
-  blocks.forEach(b => b.setAttribute('data-processed', 'true'))
-
-  const doRender = () => {
-    try {
-      mermaid.run({ nodes: Array.from(blocks) })
-    } catch(e) { console.error('mermaid render error:', e) }
+  var blocks = contentRef.value.querySelectorAll('.mermaid:not([data-processed])')
+  if (!blocks.length) return
+  for (var i = 0; i < blocks.length; i++) {
+    blocks[i].setAttribute('data-processed', '1')
   }
-
-  if (typeof mermaid !== 'undefined' && mermaidLoaded) {
-    doRender()
-  } else if (!mermaidLoaded) {
-    mermaidLoaded = true
-    const script = document.createElement('script')
-    script.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js'
-    script.onload = () => {
-      mermaid.initialize({ startOnLoad: false, theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default' })
-      doRender()
-    }
-    document.head.appendChild(script)
+  if (typeof mermaid === 'undefined') {
+    setTimeout(function() { injectMermaid() }, 200)
+    return
   }
+  try {
+    mermaid.initialize({ startOnLoad: false, theme: 'default' })
+    mermaid.run({ nodes: blocks })
+  } catch(e) { console.error('mermaid error:', e) }
 }
 function _injectMermaid_old() {
+
   if (!contentRef.value) return
   const blocks = contentRef.value.querySelectorAll('.mermaid')
   if (blocks.length === 0) return
 
   function doIt() {
-    mermaid.initialize({ startOnLoad: false, theme: 'default' })
-    mermaid.run({ nodes: Array.from(blocks) })
+    window.mermaid.initialize({ startOnLoad: false, theme: 'default' })
+    window.mermaid.run({ nodes: Array.from(blocks) })
   }
 
   if (mermaidLoaded) {
