@@ -2,10 +2,12 @@
 
 import (
 	"database/sql"
+	"hash/fnv"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"io"
 	"strconv"
 	"strings"
 	"time"
@@ -325,6 +327,32 @@ func getVisitorCount(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 200, APIResponse{Success: true, Data: map[string]interface{}{"visitors": count}})
 }
 
+var wordsCache []map[string]interface{}
+var wordsLoaded bool
+
+func loadWords() {
+	if wordsLoaded { return }
+	resp, err := http.Get("https://raw.githubusercontent.com/ZephyrZheng1001/website/main/server/words.json")
+	if err != nil { return }
+	defer resp.Body.Close()
+	data, _ := io.ReadAll(resp.Body)
+	json.Unmarshal(data, &wordsCache)
+	wordsLoaded = true
+}
+
+func wordOfTheDay(w http.ResponseWriter, r *http.Request) {
+	loadWords()
+	if len(wordsCache) == 0 {
+		writeJSON(w, 500, APIResponse{Success: false, Message: "No words loaded"})
+		return
+	}
+	today := time.Now().Format("2006-01-02")
+	h := fnv.New64a()
+	h.Write([]byte(today))
+	idx := int(h.Sum64() % uint64(len(wordsCache)))
+	writeJSON(w, 200, APIResponse{Success: true, Data: wordsCache[idx]})
+}
+
 func router(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
@@ -334,6 +362,7 @@ func router(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 
 	// Public routes
+	if path == "/api/daily-word" && r.Method == "GET" { wordOfTheDay(w, r); return }
 	if path == "/api/visitor" && r.Method == "POST" { recordVisitor(w, r); return }
 	if path == "/api/visitors/count" && r.Method == "GET" { getVisitorCount(w, r); return }
 	if path == "/api/search" && r.Method == "GET" { searchArticles(w, r); return }

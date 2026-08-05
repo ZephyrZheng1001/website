@@ -81,9 +81,9 @@
     </nav>
 
     <footer class="site-footer">
-      <p>{{ siteStats.articles }} 篇文章 · 约 {{ siteStats.words }} 字 · {{ siteStats.views }} 次阅读 · <router-link to="/admin">管理</router-link></p>
-      <p><a href="/#/about">关于</a> · <a href="https://github.com/ZephyrZheng1001" target="_blank">GitHub</a> · <a href="/resume.pdf" target="_blank">简历</a></p>
-      <p style="margin-top:6px;font-size:0.7rem;">&copy; 2026 Zephyr · Powered by Go &amp; Vue</p>
+      <p>{{ siteStats.articles }} 篇文章 · 约 {{ siteStats.words }} 字 · {{ siteStats.views }} 次阅读 · </p>
+      <p style="font-size:0.85rem;margin-top:4px;"><a href="/#/about" class="footer-link">关于</a> · <a href="https://github.com/ZephyrZheng1001" target="_blank" class="footer-link">GitHub</a> · <a href="/resume.pdf" target="_blank" class="footer-link">简历</a></p>
+      <p style="margin-top:6px;font-size:0.75rem;color:var(--text-muted);">&copy; <router-link to="/admin" class="admin-link" title="管理后台">2026</router-link> Zephyr · Powered by Go &amp; Vue</p>
     </footer>
   </div>
 
@@ -235,6 +235,33 @@ const sidebarOpen = ref(false)
 }
 .site-footer a { color: var(--text-muted); }
 .site-footer a:hover { color: var(--accent); }
+.footer-link {
+  position: relative;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 0;
+  height: 1px;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+.footer-link:hover::after {
+  width: 100%;
+}
+.admin-link {
+  color: var(--text-muted) !important;
+  text-decoration: none !important;
+  transition: color 0.3s;
+}
+.admin-link:hover {
+  color: var(--accent) !important;
+}
+
 
 /* Bottom nav (mobile) */
 .bottom-nav {

@@ -1,6 +1,6 @@
 ﻿<template>
   <div class="article-page">
-    <div style="padding-top:40px;padding-bottom:80px;max-width:720px;margin:0 auto;padding-left:24px;padding-right:24px;">
+    <div style="padding-top:40px;padding-bottom:80px;max-width:960px;margin:0 auto;padding-left:24px;padding-right:24px;">
       <div v-if="loading" style="text-align:center;color:var(--text-muted);padding:60px;">加载中...</div>
 
       <div v-else-if="!article" style="text-align:center;padding:60px;color:var(--text-muted);">
@@ -10,7 +10,7 @@
 
       <div v-else class="article-layout">
         <!-- TOC Sidebar -->
-        <aside v-if="toc.length > 0" class="toc-sidebar">
+        <aside v-if="toc.length > 1" class="toc-sidebar">
           <div class="toc-sticky">
             <h4 class="toc-title">目录</h4>
             <nav class="toc-nav">
@@ -107,18 +107,21 @@ hljs.registerLanguage('cpp', cpp)
 hljs.registerLanguage('c', cpp)
 hljs.registerLanguage('mysql', sql)
 hljs.registerLanguage('lua', function(hljs) {
-  var LUA_KEYWORDS = { keyword: 'and break do else elseif end false for function goto if in local nil not or repeat return then true until while' };
-  var LUA_LITERALS = { literal: 'true false nil' };
-  var LUA_BUILT_INS = { built_in: '_G _VERSION assert collectgarbage dofile error getfenv getmetatable ipairs load loadfile loadstring module next pairs pcall print rawequal rawget rawlen rawset require select setfenv setmetatable tonumber tostring type unpack xpcall coroutine debug io math os package string table' };
+  var LUA_KEYWORDS = {
+    keyword: 'and break do else elseif end false for function goto if in local nil not or repeat return then true until while',
+    literal: 'true false nil',
+    built_in: '_G _VERSION assert collectgarbage dofile error getfenv getmetatable ipairs load loadfile loadstring module next pairs pcall print rawequal rawget rawlen rawset require select setfenv setmetatable tonumber tostring type unpack xpcall coroutine debug io math os package string table'
+  };
   return {
+    name: 'Lua',
     aliases: ['lua'],
     keywords: LUA_KEYWORDS,
     contains: [
-      hljs.COMMENT('--\\[\\[', '\\]\\]'),
-      hljs.COMMENT('--', '$'),
+      hljs.HASH_COMMENT_MODE,
+      hljs.C_NUMBER_MODE,
       hljs.QUOTE_STRING_MODE,
-      { className: 'string', begin: "'\\[\\[", end: "\\]\\]'" },
-      { className: 'string', begin: '"\\[\\[", end: "\\]\\]"' }
+      { className: 'string', begin: '"', end: '"' },
+      { className: 'string', begin: "'", end: "'" }
     ]
   };
 })
@@ -391,48 +394,50 @@ watch(() => route.params.id, async (newId) => {
 </script>
 <style scoped>
 .article-layout {
-  display: flex;
-  gap: 40px;
   position: relative;
 }
-.article-main {
-  flex: 1;
-  min-width: 0;
-}
 .toc-sidebar {
-  width: 180px;
-  flex-shrink: 0;
+  position: fixed;
+  left: max(24px, calc((100vw - 960px) / 2 - 180px));
+  top: 80px;
+  width: 160px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  z-index: 50;
 }
 .toc-sticky {
-  position: sticky;
-  top: 80px;
+  /* noop */
 }
 .toc-title {
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 .toc-nav {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   border-left: 2px solid var(--border);
-  padding-left: 14px;
+  padding-left: 10px;
 }
 .toc-item {
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   color: var(--text-muted);
-  padding: 3px 0;
+  padding: 2px 0;
   transition: color 0.15s;
   display: block;
-  line-height: 1.5;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .toc-item:hover { color: var(--accent); text-decoration: none; }
 .toc-item.toc-active { color: var(--accent); font-weight: 500; }
-.toc-level-3 { padding-left: 14px; font-size: 0.76rem; }
+.toc-level-3 { padding-left: 10px; font-size: 0.85rem; }
+
 
 :deep(.code-block-wrapper) .copy-btn {
   position: absolute;
@@ -498,11 +503,8 @@ watch(() => route.params.id, async (newId) => {
 }
 
 @media (max-width: 900px) {
-  .article-layout { flex-direction: column; }
-  .toc-sidebar { width: 100%; order: -1; }
-  .toc-sticky { position: static; }
-  .toc-nav { flex-direction: row; flex-wrap: wrap; gap: 8px; border-left: none; padding-left: 0; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 20px; }
-  .toc-level-3 { padding-left: 0; }
+  
+  
 }
 
 /* Image zoom overlay */
@@ -525,4 +527,10 @@ watch(() => route.params.id, async (newId) => {
   z-index: 1;
 }
 [data-theme="dark"] :deep(.code-lang-tag) { background: #4db8a5; }
+@media (max-width: 768px) {
+  .toc-sidebar { display: none !important; }
+}
 </style>
+@media (max-width: 768px) {
+  .toc-sidebar { display: none; }
+}

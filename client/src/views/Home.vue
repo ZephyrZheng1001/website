@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div style="padding-top:48px;padding-bottom:32px;max-width:720px;margin:0 auto;padding-left:24px;padding-right:24px;">
 
     <section style="margin-bottom:56px;">
@@ -14,6 +14,25 @@
       <div><strong style="color:var(--accent);">{{ stats.articles }}</strong> 篇文章</div>
       <div><strong style="color:var(--accent);">{{ stats.visitors }}</strong> 位访客</div>
     </section>
+
+    <!-- Daily Word -->
+    <section v-if="dailyWord" style="margin-bottom:40px;">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:22px 28px;box-shadow:var(--shadow);">
+        <div style="display:flex;align-items:flex-start;gap:14px;">
+          <span style="font-size:1.6rem;flex-shrink:0;">📖</span>
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;">
+              <span style="font-size:0.72rem;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:1px;">每日一词</span>
+              <span style="font-size:0.68rem;color:var(--text-muted);">每天一个后端术语，积少成多</span>
+            </div>
+            <div style="font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:2px;">{{ dailyWord.word }}</div>
+            <div style="font-size:0.88rem;color:var(--text-muted);margin-bottom:6px;">{{ dailyWord.cn }}</div>
+            <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.6;">{{ dailyWord.desc }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
 
     <section style="margin-bottom:40px;">
       <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:22px 28px;box-shadow:var(--shadow);">
@@ -91,6 +110,8 @@ const columns = [
 
 const timelineItems = ref([])
 const stats = ref({ articles: 0, visitors: 0 })
+const dailyWord = ref(null)
+const todayDate = ref('')
 
 const yp = calcYearProgress()
 const currentYear = ref(yp.year)
@@ -130,6 +151,14 @@ onMounted(async () => {
       const uvData = await uvRes.json()
       stats.value.visitors = uvData.data?.visitors || uvData.visitors || 0
     } catch(e) {}
+    // Fetch daily word
+    try {
+      var dwRes = await fetch('/api/daily-word')
+      var dwData = await dwRes.json()
+      if (dwData.success) dailyWord.value = dwData.data
+    } catch(e) {}
+    var d = new Date()
+    todayDate.value = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0')
 
     const groups = {}
     all.forEach(a => {

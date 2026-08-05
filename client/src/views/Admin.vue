@@ -1,5 +1,5 @@
 ﻿<template>
-  <div style="padding-top:32px;padding-bottom:80px;max-width:1100px;margin:0 auto;padding-left:24px;padding-right:24px;">
+  <div style="padding-top:32px;padding-bottom:80px;max-width:100%;margin:0 auto;padding-left:32px;padding-right:32px;">
     <!-- Login -->
     <div v-if="!isLoggedIn" style="max-width:400px;margin:80px auto;">
       <h1 style="font-size:1.8rem;margin-bottom:24px;text-align:center;">管理员登录</h1>
