@@ -67,7 +67,7 @@
 ### Article Detail Page
 - **Reading time**: Chinese chars/400 + English words/200 (list pages use `content` field)
 - **View count**: PV counter incremented on each visit (MySQL `view_count` column)
-- **Reading position memory**: Scroll position saved to localStorage, restored on revisit
+- ~~**Reading position memory**~~: Removed (2026-08-05) ? articles now always start from top
 - **Table of Contents**: Auto-extracted from h2/h3 headings, sticky sidebar, active heading tracking
 - **Prev/Next navigation**: Links to previous/next article in same category
 
@@ -275,3 +275,15 @@ $env:GOOS='linux'; $env:GOARCH='amd64'; go build -o server_linux main.go
 scp server_linux admin@47.116.136.145:~/server_linux
 ssh admin@47.116.136.145 "sudo systemctl stop zephyr-api && sudo cp ~/server_linux /opt/zephyr/server/server_linux && sudo chmod +x /opt/zephyr/server/server_linux && sudo systemctl start zephyr-api"
 ```
+
+
+---
+
+## Recent Changes
+
+### 2026-08-05: Remove reading position memory
+- Removed `saveReadPos()` and all localStorage scroll-position save/restore logic in Article.vue
+- Articles now always start from top; no more auto-scrolling to last position
+- Cleaned 15 temp/dev scripts from repo root
+- Fixed `inject_word.py` to deduplicate `__DAILY_WORD__` blocks in index.html (was accumulating 6 blocks)
+- Cleaned server: removed old `server` binary, `go.mod`, `go.sum`, `main.go`, `app.log` from `/opt/zephyr/server/`
