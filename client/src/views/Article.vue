@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="article-page">
     <div style="padding-top:40px;padding-bottom:80px;max-width:720px;margin:0 auto;padding-left:24px;padding-right:24px;">
       <div v-if="loading" style="text-align:center;color:var(--text-muted);padding:60px;">加载中...</div>
@@ -172,8 +172,30 @@ function prevLink(item) {
 const renderedContent = computed(() => {
   if (!article.value?.content) return ''
   headingCounter = 0
-  return marked(article.value.content)
+  let html = marked(article.value.content)
+  html = processInlineKatex(html)
+  return html
 })
+
+function processInlineKatex(html) {
+  // display math $$
+  html = html.replace(/\$\$([\s\S]*?)\$\$/g, function(_, formula) {
+    try {
+      return '<p class="katex-block">' + katex.renderToString(formula.trim(), { displayMode: true, throwOnError: false }) + '</p>'
+    } catch (e) {
+      return '<code class="katex-error">' + _ + '</code>'
+    }
+  })
+  // inline math $
+  html = html.replace(/(?<![`$])\$(?!\$)([^$]+?)\$(?![`$])/g, function(_, formula) {
+    try {
+      return katex.renderToString(formula.trim(), { displayMode: false, throwOnError: false })
+    } catch (e) {
+      return '<code class="katex-error">' + _ + '</code>'
+    }
+  })
+  return html
+}
 
 function getTagClass(tag) {
   const t = tag.toLowerCase()

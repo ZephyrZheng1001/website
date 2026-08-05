@@ -25,9 +25,15 @@
               v-for="t in popularTags"
               :key="t"
               :to="`/${routeName}?tag=${encodeURIComponent(t)}`"
-              class="tag"
+              :class="['tag', { 'tag-active': activeTag === t }]"
               style="cursor:pointer;"
             >{{ t }}</router-link>
+            <router-link
+              v-if="activeTag"
+              :to="`/${routeName}`"
+              class="tag tag-clear"
+              style="cursor:pointer;"
+            >清除筛选</router-link>
           </div>
         </div>
       </aside>
@@ -55,7 +61,7 @@
             </p>
             <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
               <div>
-                <span v-for="tag in parseTags(article.tags)" :key="tag" :class="getTagClass(tag)">{{ cleanTag(tag) }}</span>
+                <span v-for="tag in parseTags(article.tags)" :key="tag" :class="getTagClass(tag)" style="cursor:pointer;" @click.prevent="goToTag(tag)">{{ cleanTag(tag) }}</span>
               </div>
               <span style="color:var(--text-muted);font-size:0.8rem;">{{ formatDate(article.created_at) }}</span>
             </div>
@@ -74,17 +80,18 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { articleAPI } from '../api'
 
 const route = useRoute()
+const router = useRouter()
 
 const columns = {
   blog: { title: '技术文章', desc: '技术分享与教程', icon: '📝' },
   leetcode: { title: '算法笔记', desc: '算法题解与刷题笔记', icon: '💡' },
   projects: { title: '项目', desc: '项目复盘与技术方案', icon: '🚀' },
   notes: { title: '碎碎念', desc: '日常随想与生活记录', icon: '💬' },
-  study: { title: '学习笔记', desc: '系统化学习记录', icon: '📖' },
+  study: { title: '学习笔记', desc: '系统化学习记录', icon: '📓' },
 }
 
 const allColumns = [
@@ -92,12 +99,13 @@ const allColumns = [
   { key: 'leetcode', title: '算法笔记', icon: '💡', count: null },
   { key: 'projects', title: '项目', icon: '🚀', count: null },
   { key: 'notes', title: '碎碎念', icon: '💬', count: null },
-  { key: 'study', title: '学习笔记', icon: '📖', count: null },
+  { key: 'study', title: '学习笔记', icon: '📓', count: null },
 ]
 
 const routeName = computed(() => route.name?.toLowerCase() || 'blog')
 const category = computed(() => routeName.value)
 const columnInfo = computed(() => columns[category.value] || columns.blog)
+const activeTag = computed(() => route.query.tag || '')
 
 const articles = ref([])
 const loading = ref(true)
@@ -127,23 +135,35 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString('zh-CN')
 }
 
+function goToTag(tag) {
+  // Navigate to the same column with that tag filter
+  router.push(`/${routeName.value}?tag=${encodeURIComponent(tag)}`)
+}
+
 async function fetchArticles() {
   loading.value = true
   try {
     const params = { page: page.value, limit, category: category.value }
+    if (route.query.tag) { params.tag = route.query.tag }
     const res = await articleAPI.list(params)
     articles.value = res.data.articles || []
     total.value = res.data.total
     totalPages.value = Math.ceil(total.value / limit)
-    // Collect tags
-    const tagSet = new Set()
-    articles.value.forEach(a => parseTags(a.tags).forEach(t => tagSet.add(t)))
-    popularTags.value = [...tagSet].slice(0, 15)
   } catch (e) {
     console.error(e)
   } finally {
     loading.value = false
   }
+}
+
+// Load ALL tags for the current category (unfiltered), so sidebar tags don't disappear
+async function fetchAllTags() {
+  try {
+    const res = await articleAPI.list({ category: category.value, limit: 200 })
+    const tagSet = new Set()
+    ;(res.data.articles || []).forEach(a => parseTags(a.tags).forEach(t => tagSet.add(t)))
+    popularTags.value = [...tagSet].slice(0, 20)
+  } catch (e) { /* silent */ }
 }
 
 async function fetchColumnCounts() {
@@ -163,9 +183,10 @@ async function fetchColumnCounts() {
   } catch (e) { /* silent */ }
 }
 
-watch(category, () => { page.value = 1; fetchArticles() })
-onMounted(() => { fetchArticles(); fetchColumnCounts() })
-watch(() => route.path, () => { fetchColumnCounts() })
+// Watch both category and tag changes
+watch(() => [category.value, route.query.tag], () => { page.value = 1; fetchArticles() })
+onMounted(() => { fetchArticles(); fetchAllTags(); fetchColumnCounts() })
+watch(category, () => { fetchAllTags(); fetchColumnCounts() })
 </script>
 
 <style scoped>
@@ -219,7 +240,19 @@ watch(() => route.path, () => { fetchColumnCounts() })
   flex: 1;
   min-width: 0;
 }
-
+.tag-active {
+  background: var(--accent) !important;
+  color: #fff !important;
+}
+.tag-clear {
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  border: 1px dashed var(--border);
+}
+.tag-clear:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
 @media (max-width: 768px) {
   .blog-layout { flex-direction: column; }
   .blog-sidebar { width: 100%; }

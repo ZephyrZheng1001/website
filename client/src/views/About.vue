@@ -1,9 +1,9 @@
-﻿<template>
+<template>
   <div style="padding-top:48px;padding-bottom:80px;max-width:720px;margin:0 auto;padding-left:24px;padding-right:24px;">
 
     <!-- Header -->
     <section style="text-align:center;margin-bottom:48px;">
-      <div class="avatar">Z</div>
+      <img src="/avatar.jpg" alt="Zephyr" class="avatar-img" />
       <h1 style="font-size:2rem;margin-top:16px;">Zephyr</h1>
       <p style="color:var(--text-muted);margin-top:6px;">开发者 · 技术爱好者</p>
     </section>
@@ -62,19 +62,14 @@
 </template>
 
 <style scoped>
-.avatar {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, var(--accent) 0%, #5bb8a8 100%);
+.avatar-img {
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #fff;
-  margin: 0 auto;
+  object-fit: cover;
   box-shadow: 0 4px 20px rgba(45,138,123,0.3);
+  display: block;
+  margin: 0 auto;
 }
 .contact-card {
   display: flex;
