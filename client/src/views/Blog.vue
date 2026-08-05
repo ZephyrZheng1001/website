@@ -63,7 +63,7 @@
               <div>
                 <span v-for="tag in parseTags(article.tags)" :key="tag" :class="getTagClass(tag)" style="cursor:pointer;" @click.prevent="goToTag(tag)">{{ cleanTag(tag) }}</span>
               </div>
-              <span style="color:var(--text-muted);font-size:0.78rem;">{{ formatDate(article.created_at) }} · {{ readingTime(article.summary || article.content || article.title) }}</span>
+              <span style="color:var(--text-muted);font-size:0.78rem;">{{ formatDate(article.created_at) }} · {{ readingTime(article.content || article.summary || article.title) }}</span>
             </div>
           </router-link>
         </div>

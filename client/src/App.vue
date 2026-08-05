@@ -81,7 +81,7 @@
     </nav>
 
     <footer class="site-footer">
-      <p>{{ siteStats.articles }} 篇文章 · 约 {{ siteStats.words }} 字 · <router-link to="/admin">管理</router-link></p>
+      <p>{{ siteStats.articles }} 篇文章 · 约 {{ siteStats.words }} 字 · {{ siteStats.views }} 次阅读 · <router-link to="/admin">管理</router-link></p>
       <p><a href="/#/about">关于</a> · <a href="https://github.com/ZephyrZheng1001" target="_blank">GitHub</a> · <a href="/resume.pdf" target="_blank">简历</a></p>
       <p style="margin-top:6px;font-size:0.7rem;">&copy; 2026 Zephyr · Powered by Go &amp; Vue</p>
     </footer>
@@ -101,16 +101,18 @@ async function fetchSiteStats() {
     const data = await res.json()
     const articles = data.data?.articles || []
     let totalWords = 0
+    let totalViews = 0
     articles.forEach(function(a) {
-      totalWords += (a.summary || '').length + (a.content || '').length
+      totalWords += (a.content || a.summary || '').length
+      totalViews += (a.view_count || 0)
     })
-    siteStats.value = { articles: articles.length, words: Math.round(totalWords / 2) }
+    siteStats.value = { articles: articles.length, words: Math.round(totalWords / 2), views: totalViews }
   } catch(e) {}
 }
 
 onMounted(() => window.addEventListener('scroll', updateProgress, { passive: true }))
 onUnmounted(() => window.removeEventListener('scroll', updateProgress))
-const siteStats = ref({ articles: 0, words: 0 })
+const siteStats = ref({ articles: 0, words: 0, views: 0 })
 const showBackTop = ref(false)
 function onMainScroll() { showBackTop.value = window.scrollY > 400 }
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }) }

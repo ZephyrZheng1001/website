@@ -52,7 +52,7 @@
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                 <span v-if="article.subcategory" style="font-size:0.75rem;color:var(--accent);background:var(--accent-light);padding:1px 8px;border-radius:8px;">{{ subNames[article.subcategory] || article.subcategory }}</span>
                 <span v-for="tag in parseTags(article.tags)" :key="tag" style="font-size:0.75rem;color:var(--text-muted);">#{{ tag }}</span>
-                <span style="font-size:0.75rem;color:var(--text-muted);margin-left:auto;">{{ formatDate(article.created_at) }} · {{ readingTime(article.summary || article.content || article.title) }}</span>
+                <span style="font-size:0.75rem;color:var(--text-muted);margin-left:auto;">{{ formatDate(article.created_at) }} · {{ readingTime(article.content || article.summary || article.title) }}</span>
               </div>
             </div>
             <span style="color:var(--text-muted);font-size:0.85rem;">→</span>
