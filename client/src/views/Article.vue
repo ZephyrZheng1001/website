@@ -290,41 +290,22 @@ function injectImageZoom() {
 
 function injectCopyButtons() {
   if (!contentRef.value) return
-  contentRef.value.querySelectorAll('pre').forEach(pre => {
-    if (pre.querySelector('.copy-btn')) return
-    const wrapper = document.createElement('div')
-    wrapper.style.position = 'relative'
-    const btn = document.createElement('button')
+  var wrappers = contentRef.value.querySelectorAll('.code-block-wrapper')
+  for (var i = 0; i < wrappers.length; i++) {
+    var w = wrappers[i]
+    if (w.querySelector('.copy-btn')) continue
+    var btn = document.createElement('button')
     btn.className = 'copy-btn'
-    btn.textContent = '\u590d\u5236'
-    btn.onclick = () => {
-      const code = pre.querySelector('code')?.textContent || pre.textContent || ''
-      navigator.clipboard.writeText(code).then(() => {
-        btn.textContent = '\u5df2\u590d\u5236!'
-        setTimeout(() => btn.textContent = '\u590d\u5236', 2000)
-      })
+    btn.textContent = '复制'
+    btn.onclick = function() {
+      var code = this.parentNode.querySelector('code')
+      var txt = code ? code.textContent : this.parentNode.textContent || ''
+      navigator.clipboard.writeText(txt).then((function(btn) {
+        return function() { btn.textContent = '已复制!'; setTimeout(function() { btn.textContent = '复制' }, 2000) }
+      })(this))
     }
-    pre.parentNode.insertBefore(wrapper, pre)
-    wrapper.appendChild(pre)
-    wrapper.appendChild(btn)
-  })
-}
-
-function injectMermaid() {
-  if (!contentRef.value) return
-  var blocks = contentRef.value.querySelectorAll('.mermaid:not([data-processed])')
-  if (!blocks.length) return
-  for (var i = 0; i < blocks.length; i++) {
-    blocks[i].setAttribute('data-processed', '1')
+    w.appendChild(btn)
   }
-  if (typeof mermaid === 'undefined') {
-    setTimeout(function() { injectMermaid() }, 200)
-    return
-  }
-  try {
-    mermaid.initialize({ startOnLoad: false, theme: 'default' })
-    mermaid.run({ nodes: blocks })
-  } catch(e) { console.error('mermaid error:', e) }
 }
 function _injectMermaid_old() {
 
