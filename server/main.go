@@ -218,7 +218,7 @@ func adminCreateArticle(w http.ResponseWriter, r *http.Request) {
 	var a Article
 	json.NewDecoder(r.Body).Decode(&a)
 	res, err := db.Exec("INSERT INTO articles (title, content, summary, tags, category, subcategory, study_status, is_pinned, view_count) VALUES (?,?,?,?,?,?,?,?,0)",
-		a.Title, a.Content, a.Summary, a.Tags, a.Category, a.Subcategory, a.StudyStatus, a.IsPinned, a.ViewCount)
+		a.Title, a.Content, a.Summary, a.Tags, a.Category, a.Subcategory, a.StudyStatus, a.IsPinned)
 	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
 	id, _ := res.LastInsertId()
 	writeJSON(w, 200, APIResponse{Success: true, Data: map[string]int64{"id": id}})
