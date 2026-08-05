@@ -106,6 +106,22 @@ hljs.registerLanguage('java', java)
 hljs.registerLanguage('cpp', cpp)
 hljs.registerLanguage('c', cpp)
 hljs.registerLanguage('mysql', sql)
+hljs.registerLanguage('lua', function(hljs) {
+  var LUA_KEYWORDS = { keyword: 'and break do else elseif end false for function goto if in local nil not or repeat return then true until while' };
+  var LUA_LITERALS = { literal: 'true false nil' };
+  var LUA_BUILT_INS = { built_in: '_G _VERSION assert collectgarbage dofile error getfenv getmetatable ipairs load loadfile loadstring module next pairs pcall print rawequal rawget rawlen rawset require select setfenv setmetatable tonumber tostring type unpack xpcall coroutine debug io math os package string table' };
+  return {
+    aliases: ['lua'],
+    keywords: LUA_KEYWORDS,
+    contains: [
+      hljs.COMMENT('--\\[\\[', '\\]\\]'),
+      hljs.COMMENT('--', '$'),
+      hljs.QUOTE_STRING_MODE,
+      { className: 'string', begin: "'\\[\\[", end: "\\]\\]'" },
+      { className: 'string', begin: '"\\[\\[", end: "\\]\\]"' }
+    ]
+  };
+})
 
 const renderer = new marked.Renderer()
 let headingCounter = 0
