@@ -63,7 +63,7 @@
               <div style="display:flex;align-items:flex-start;gap:10px;">
                 <span class="home-tl-dot" :class="dotClass(a.category)"></span>
                 <div style="flex:1;min-width:0;">
-                  <strong style="font-size:0.92rem;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ a.is_pinned ? '\U0001f4cc ' : '' }}{{ a.title }}</strong>
+                  <strong style="font-size:0.92rem;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ a.is_pinned ? '📌 ' : '' }}{{ a.title }}</strong>
                   <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap;">
                     <span class="tag" style="font-size:0.7rem;padding:1px 7px;">{{ catLabel(a.category) }}</span>
                     <span v-for="t in (a.tags||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,3)" :key="t" class="tag" style="font-size:0.68rem;padding:1px 6px;margin:0;">{{ t }}</span>
@@ -83,10 +83,10 @@ import { ref, onMounted } from 'vue'
 import { articleAPI } from '../api'
 
 const columns = [
-  { key: 'blog', title: '技术文章', desc: '技术分享与教程', icon: '\U0001f4dd', link: '/blog' },
-  { key: 'leetcode', title: '算法笔记', desc: '算法题解笔记', icon: '\U0001f4a1', link: '/leetcode' },
-  { key: 'projects', title: '项目', desc: '项目复盘方案', icon: '\U0001f680', link: '/projects' },
-  { key: 'notes', title: '碎碎念', desc: '日常随想记录', icon: '\U0001f4ac', link: '/notes' },
+  { key: 'blog', title: '技术文章', desc: '技术分享与教程', icon: '📝', link: '/blog' },
+  { key: 'leetcode', title: '算法笔记', desc: '算法题解笔记', icon: '💡', link: '/leetcode' },
+  { key: 'projects', title: '项目', desc: '项目复盘方案', icon: '🚀', link: '/projects' },
+  { key: 'notes', title: '碎碎念', desc: '日常随想记录', icon: '💬', link: '/notes' },
 ]
 
 const timelineItems = ref([])
