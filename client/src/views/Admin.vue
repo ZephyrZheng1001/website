@@ -117,7 +117,7 @@
           <div class="form-group">
             <label>学习状态</label>
             <select v-model="editorForm.study_status">
-              <option value="">学习中</option>
+              <option value="">未设置</option>
               <option value="todo">待开始</option>
               <option value="doing">学习中</option>
               <option value="done">已完成</option>
