@@ -81,7 +81,7 @@
     </nav>
 
     <footer class="site-footer">
-      <p>{{ siteStats.articles }} 篇文章 · 约 {{ siteStats.words }} 字 · {{ siteStats.views }} 次阅读 · <router-link to="/admin">管理</router-link></p>
+      <p>{{ siteStats.articles }} 篇文章 · 约 {{ siteStats.words }} 字 · {{ siteStats.views }} 次阅读 · {{ siteStats.visitors }} 位访客 · <router-link to="/admin">管理</router-link></p>
       <p><a href="/#/about">关于</a> · <a href="https://github.com/ZephyrZheng1001" target="_blank">GitHub</a> · <a href="/resume.pdf" target="_blank">简历</a></p>
       <p style="margin-top:6px;font-size:0.7rem;">&copy; 2026 Zephyr · Powered by Go &amp; Vue</p>
     </footer>
@@ -106,13 +106,23 @@ async function fetchSiteStats() {
       totalWords += (a.content || a.summary || '').length
       totalViews += (a.view_count || 0)
     })
-    siteStats.value = { articles: articles.length, words: Math.round(totalWords / 2), views: totalViews }
+    // Unique visitors via localStorage
+    var uvKey = 'zephyr_visited'
+    var uvCount = parseInt(localStorage.getItem(uvKey + '_count') || '0')
+    var lastVisit = localStorage.getItem(uvKey + '_date')
+    var today = new Date().toDateString()
+    if (lastVisit !== today) {
+      uvCount++
+      localStorage.setItem(uvKey + '_count', uvCount)
+      localStorage.setItem(uvKey + '_date', today)
+    }
+    siteStats.value = { articles: articles.length, words: Math.round(totalWords / 2), views: totalViews, visitors: uvCount }
   } catch(e) {}
 }
 
 onMounted(() => window.addEventListener('scroll', updateProgress, { passive: true }))
 onUnmounted(() => window.removeEventListener('scroll', updateProgress))
-const siteStats = ref({ articles: 0, words: 0, views: 0 })
+const siteStats = ref({ articles: 0, words: 0, views: 0, visitors: 0 })
 const showBackTop = ref(false)
 function onMainScroll() { showBackTop.value = window.scrollY > 400 }
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }) }
