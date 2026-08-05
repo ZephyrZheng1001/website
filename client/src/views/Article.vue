@@ -296,12 +296,12 @@ function injectCopyButtons() {
     if (w.querySelector('.copy-btn')) continue
     var btn = document.createElement('button')
     btn.className = 'copy-btn'
-    btn.textContent = '复制'
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>'
     btn.onclick = function() {
       var code = this.parentNode.querySelector('code')
       var txt = code ? code.textContent : this.parentNode.textContent || ''
       navigator.clipboard.writeText(txt).then((function(btn) {
-        return function() { btn.textContent = '已复制!'; setTimeout(function() { btn.textContent = '复制' }, 2000) }
+        return function() { btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>'; setTimeout(function() { btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>' }, 2000) }
       })(this))
     }
     w.appendChild(btn)
@@ -330,10 +330,13 @@ function _injectMermaid_old() {
 
 watch(renderedContent, async () => {
   await nextTick()
+  await nextTick()
   extractTOC()
   injectCopyButtons()
   injectMermaid()
   injectImageZoom()
+  // Fallback: sometimes v-html DOM isn't ready after nextTick
+  setTimeout(function() { injectCopyButtons() }, 100)
 })
 
 onMounted(async () => {
@@ -372,11 +375,13 @@ watch(() => route.params.id, async (newId) => {
     prevNext.value = { prev: res.data.prev || null, next: res.data.next || null }
     document.title = (article.value.title || '') + ' - Zephyr'
     await nextTick()
+    await nextTick()
     extractTOC()
     injectCopyButtons()
     injectMermaid()
     injectImageZoom()
     restoreReadingProgress()
+    setTimeout(function() { injectCopyButtons() }, 100)
   } catch (e) {
     console.error(e)
   } finally {
@@ -429,26 +434,34 @@ watch(() => route.params.id, async (newId) => {
 .toc-item.toc-active { color: var(--accent); font-weight: 500; }
 .toc-level-3 { padding-left: 14px; font-size: 0.76rem; }
 
-:deep(.copy-btn) {
+:deep(.code-block-wrapper) .copy-btn {
   position: absolute;
   top: 8px;
   right: 8px;
-  padding: 4px 12px;
-  background: rgba(0,0,0,0.06);
+  width: 32px;
+  height: 32px;
+  padding: 7px;
+  background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 4px;
-  font-size: 0.75rem;
+  border-radius: 6px;
   color: var(--text-muted);
   cursor: pointer;
-  transition: all 0.2s;
-  font-family: inherit;
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.2s, color 0.2s, border-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+:deep(.code-block-wrapper:hover) .copy-btn {
+  opacity: 1;
 }
 :deep(.copy-btn:hover) {
   background: var(--accent-light);
   color: var(--accent);
   border-color: var(--accent);
 }
-[data-theme="dark"] :deep(.copy-btn) { background: rgba(255,255,255,0.06); }
+[data-theme="dark"] :deep(.code-block-wrapper) .copy-btn { background: var(--bg-card); border-color: var(--border); }
+[data-theme="dark"] :deep(.copy-btn:hover) { background: rgba(77,184,165,0.15); color: var(--accent); }
 
 /* Prev/Next Nav */
 .prev-next-nav {
