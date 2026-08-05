@@ -51,6 +51,7 @@
       <main class="main-content">
         <router-view />
       </main>
+      <button class="back-to-top" :class="{ visible: showBackTop }" @click="scrollToTop" title="返回顶部">↑</button>
     </div>
 
     <!-- Mobile Bottom Nav -->
@@ -87,9 +88,14 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useTheme } from './composables/theme'
 const { isDark, toggle: toggleTheme } = useTheme()
+const showBackTop = ref(false)
+function onMainScroll() { showBackTop.value = window.scrollY > 400 }
+function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }) }
+onMounted(() => window.addEventListener('scroll', onMainScroll, { passive: true }))
+onUnmounted(() => window.removeEventListener('scroll', onMainScroll))
 const sidebarOpen = ref(false)
 </script>
 
@@ -247,5 +253,20 @@ const sidebarOpen = ref(false)
 @media (min-width: 769px) {
   .sidebar { transform: translateX(0) !important; }
   .sidebar-overlay { display: none !important; }
+}
+
+.back-to-top {
+  position: fixed; bottom: 80px; right: 24px;
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--accent); color: #fff; border: none;
+  font-size: 1.2rem; cursor: pointer; z-index: 300;
+  opacity: 0; transform: translateY(16px);
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none; box-shadow: 0 4px 16px rgba(45,138,123,0.3);
+}
+.back-to-top.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.back-to-top:hover { background: #236b60; transform: translateY(-2px); }
+@media (max-width: 768px) {
+  .back-to-top { bottom: 76px; right: 16px; width: 38px; height: 38px; font-size: 1rem; }
 }
 </style>

@@ -35,7 +35,7 @@
 
           <div style="display:flex;gap:12px;align-items:center;margin-bottom:32px;flex-wrap:wrap;">
             <span v-for="tag in parseTags(article.tags)" :key="tag" :class="getTagClass(tag)">{{ cleanTag(tag) }}</span>
-            <span style="color:var(--text-muted);font-size:0.85rem;">{{ formatDate(article.created_at) }} · {{ readingTime(article.content) }}</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">{{ formatDate(article.created_at) }} · {{ readingTime(article.content) }} · {{ article.view_count || 0 }} 次阅读</span>
           </div>
 
           <div ref="contentRef" class="article-content" v-html="renderedContent"></div>
@@ -137,10 +137,10 @@ marked.Renderer.prototype.code = function(token) {
   }
   if (lang && hljs.getLanguage(lang)) {
     const result = hljs.highlight(code, { language: lang })
-    return '<pre><code class="hljs language-' + lang + '">' + result.value + '</code></pre>'
+    return '<div class="code-block-wrapper"><span class="code-lang-tag">' + lang + '</span><pre><code class="hljs language-' + lang + '">' + result.value + '</code></pre></div>'
   }
   const result = hljs.highlightAuto(code)
-  return '<pre><code class="hljs">' + result.value + '</code></pre>'
+  return '<div class="code-block-wrapper"><pre><code class="hljs">' + result.value + '</code></pre></div>'
 }
 
 const route = useRoute()
@@ -458,4 +458,15 @@ onMounted(async () => {
 }
 :deep(.img-overlay img) { box-shadow: 0 8px 40px rgba(0,0,0,0.5); }
 [data-theme="dark"] :deep(.img-overlay) { background: rgba(0,0,0,0.92); }
+
+:deep(.code-block-wrapper) { position: relative; margin: 1em 0; }
+:deep(.code-lang-tag) {
+  position: absolute; top: 0; left: 12px;
+  background: var(--accent); color: #fff;
+  font-size: 0.7rem; font-weight: 600;
+  padding: 2px 10px; border-radius: 0 0 4px 4px;
+  text-transform: uppercase;
+  z-index: 1;
+}
+[data-theme="dark"] :deep(.code-lang-tag) { background: #4db8a5; }
 </style>

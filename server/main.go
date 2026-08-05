@@ -28,6 +28,7 @@ type Article struct {
 	Subcategory string    `json:"subcategory"`
 	StudyStatus string    `json:"study_status"`
 	IsPinned    bool      `json:"is_pinned"`
+	ViewCount   int       `json:"view_count"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
@@ -97,7 +98,7 @@ func getArticles(w http.ResponseWriter, r *http.Request) {
 		where = " WHERE " + strings.Join(conditions, " AND ")
 	}
 
-	query := "SELECT id, title, summary, tags, category, subcategory, study_status, is_pinned, created_at, updated_at FROM articles" + where + " ORDER BY is_pinned DESC, created_at DESC LIMIT ? OFFSET ?"
+	query := "SELECT id, title, summary, tags, category, subcategory, study_status, is_pinned, view_count, created_at, updated_at FROM articles" + where + " ORDER BY is_pinned DESC, created_at DESC LIMIT ? OFFSET ?"
 	countQuery := "SELECT COUNT(*) FROM articles" + where
 
 	args = append(args, limit, offset)
@@ -108,7 +109,7 @@ func getArticles(w http.ResponseWriter, r *http.Request) {
 	var articles []Article
 	for rows.Next() {
 		var a Article
-		rows.Scan(&a.ID, &a.Title, &a.Summary, &a.Tags, &a.Category, &a.Subcategory, &a.StudyStatus, &a.IsPinned, &a.CreatedAt, &a.UpdatedAt)
+		rows.Scan(&a.ID, &a.Title, &a.Summary, &a.Tags, &a.Category, &a.Subcategory, &a.StudyStatus, &a.IsPinned, &a.ViewCount, &a.CreatedAt, &a.UpdatedAt)
 		articles = append(articles, a)
 	}
 	if articles == nil { articles = []Article{} }
@@ -125,10 +126,13 @@ func getArticles(w http.ResponseWriter, r *http.Request) {
 func getArticle(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, "/api/articles/")
 	var a Article
-	err := db.QueryRow("SELECT id, title, content, summary, tags, category, subcategory, study_status, is_pinned, created_at, updated_at FROM articles WHERE id=?", id).
-		Scan(&a.ID, &a.Title, &a.Content, &a.Summary, &a.Tags, &a.Category, &a.Subcategory, &a.StudyStatus, &a.IsPinned, &a.CreatedAt, &a.UpdatedAt)
+	err := db.QueryRow("SELECT id, title, content, summary, tags, category, subcategory, study_status, is_pinned, view_count, created_at, updated_at FROM articles WHERE id=?", id).
+		Scan(&a.ID, &a.Title, &a.Content, &a.Summary, &a.Tags, &a.Category, &a.Subcategory, &a.StudyStatus, &a.IsPinned, &a.ViewCount, &a.CreatedAt, &a.UpdatedAt)
 	if err == sql.ErrNoRows { writeJSON(w, 404, APIResponse{Success: false, Message: "文章不存在"}); return }
 	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
+	// Increment view count
+	db.Exec("UPDATE articles SET view_count = view_count + 1 WHERE id=?", id)
+
 	// Get prev and next articles in same category
 	var prevID, nextID int
 	var prevTitle, nextTitle string
@@ -186,14 +190,14 @@ func adminChangePassword(w http.ResponseWriter, r *http.Request, username string
 }
 
 func adminGetArticles(w http.ResponseWriter, r *http.Request) {
-	rows, err := db.Query("SELECT id, title, content, summary, tags, category, subcategory, study_status, is_pinned, created_at, updated_at FROM articles ORDER BY created_at DESC")
+	rows, err := db.Query("SELECT id, title, content, summary, tags, category, subcategory, study_status, is_pinned, view_count, created_at, updated_at FROM articles ORDER BY created_at DESC")
 	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
 	defer rows.Close()
 
 	var articles []Article
 	for rows.Next() {
 		var a Article
-		rows.Scan(&a.ID, &a.Title, &a.Content, &a.Summary, &a.Tags, &a.Category, &a.Subcategory, &a.StudyStatus, &a.IsPinned, &a.CreatedAt, &a.UpdatedAt)
+		rows.Scan(&a.ID, &a.Title, &a.Content, &a.Summary, &a.Tags, &a.Category, &a.Subcategory, &a.StudyStatus, &a.IsPinned, &a.ViewCount, &a.CreatedAt, &a.UpdatedAt)
 		articles = append(articles, a)
 	}
 	if articles == nil { articles = []Article{} }
@@ -203,8 +207,8 @@ func adminGetArticles(w http.ResponseWriter, r *http.Request) {
 func adminCreateArticle(w http.ResponseWriter, r *http.Request) {
 	var a Article
 	json.NewDecoder(r.Body).Decode(&a)
-	res, err := db.Exec("INSERT INTO articles (title, content, summary, tags, category, subcategory, study_status, is_pinned) VALUES (?,?,?,?,?,?,?,?)",
-		a.Title, a.Content, a.Summary, a.Tags, a.Category, a.Subcategory, a.StudyStatus, a.IsPinned)
+	res, err := db.Exec("INSERT INTO articles (title, content, summary, tags, category, subcategory, study_status, is_pinned, view_count) VALUES (?,?,?,?,?,?,?,?,0)",
+		a.Title, a.Content, a.Summary, a.Tags, a.Category, a.Subcategory, a.StudyStatus, a.IsPinned, a.ViewCount)
 	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
 	id, _ := res.LastInsertId()
 	writeJSON(w, 200, APIResponse{Success: true, Data: map[string]int64{"id": id}})
@@ -214,8 +218,8 @@ func adminUpdateArticle(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, "/api/admin/articles/")
 	var a Article
 	json.NewDecoder(r.Body).Decode(&a)
-	_, err := db.Exec("UPDATE articles SET title=?, content=?, summary=?, tags=?, category=?, subcategory=?, study_status=?, is_pinned=? WHERE id=?",
-		a.Title, a.Content, a.Summary, a.Tags, a.Category, a.Subcategory, a.StudyStatus, a.IsPinned, id)
+	_, err := db.Exec("UPDATE articles SET title=?, content=?, summary=?, tags=?, category=?, subcategory=?, study_status=?, is_pinned=?, view_count=? WHERE id=?",
+		a.Title, a.Content, a.Summary, a.Tags, a.Category, a.Subcategory, a.StudyStatus, a.IsPinned, a.ViewCount, id)
 	if err != nil { writeJSON(w, 500, APIResponse{Success: false, Message: err.Error()}); return }
 	writeJSON(w, 200, APIResponse{Success: true})
 }
@@ -275,7 +279,7 @@ func searchArticles(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 200, APIResponse{Success: true, Data: []Article{}})
 		return
 	}
-	query := "SELECT id, title, summary, tags, category, subcategory, study_status, is_pinned, created_at, updated_at FROM articles WHERE title LIKE ? OR content LIKE ? OR summary LIKE ? OR tags LIKE ? ORDER BY is_pinned DESC, created_at DESC LIMIT 50"
+	query := "SELECT id, title, summary, tags, category, subcategory, study_status, is_pinned, view_count, created_at, updated_at FROM articles WHERE title LIKE ? OR content LIKE ? OR summary LIKE ? OR tags LIKE ? ORDER BY is_pinned DESC, created_at DESC LIMIT 50"
 	like := "%" + q + "%"
 	rows, err := db.Query(query, like, like, like, like)
 	if err != nil {
@@ -286,7 +290,7 @@ func searchArticles(w http.ResponseWriter, r *http.Request) {
 	var articles []Article
 	for rows.Next() {
 		var a Article
-		rows.Scan(&a.ID, &a.Title, &a.Summary, &a.Tags, &a.Category, &a.Subcategory, &a.StudyStatus, &a.IsPinned, &a.CreatedAt, &a.UpdatedAt)
+		rows.Scan(&a.ID, &a.Title, &a.Summary, &a.Tags, &a.Category, &a.Subcategory, &a.StudyStatus, &a.IsPinned, &a.ViewCount, &a.CreatedAt, &a.UpdatedAt)
 		articles = append(articles, a)
 	}
 	if articles == nil {
@@ -357,6 +361,7 @@ func initDB() {
 		subcategory VARCHAR(50) DEFAULT '',
 		study_status VARCHAR(20) DEFAULT '',
 		is_pinned TINYINT(1) DEFAULT 0,
+		view_count INT DEFAULT 0,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`)
@@ -365,6 +370,7 @@ func initDB() {
 	db.Exec("ALTER TABLE articles ADD COLUMN IF NOT EXISTS subcategory VARCHAR(50) DEFAULT '' AFTER category")
 	db.Exec("ALTER TABLE articles ADD COLUMN IF NOT EXISTS study_status VARCHAR(20) DEFAULT '' AFTER subcategory")
 	db.Exec("ALTER TABLE articles ADD COLUMN IF NOT EXISTS is_pinned TINYINT(1) DEFAULT 0 AFTER study_status")
+	db.Exec("ALTER TABLE articles ADD COLUMN IF NOT EXISTS view_count INT DEFAULT 0 AFTER is_pinned")
 
 	db.Exec(`CREATE TABLE IF NOT EXISTS users (
 		id INT AUTO_INCREMENT PRIMARY KEY,

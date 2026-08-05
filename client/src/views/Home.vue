@@ -34,12 +34,13 @@
 
     <section>
       <div class="nav-grid">
-        <router-link v-for="col in columns" :key="col.key" :to="col.link" class="card nav-card">
+        <router-link v-for="col in columns" :key="col.key" :to="col.link" class="card nav-card" :title="col.count !== null ? col.count + ' 篇' : ''">
           <div class="nav-card-icon">{{ col.icon }}</div>
           <div>
             <h3>{{ col.title }}</h3>
             <p>{{ col.desc }}</p>
           </div>
+          <span class="nav-card-count" v-if="col.count !== null">{{ col.count }}篇</span>
           <span class="nav-card-arrow">→</span>
         </router-link>
       </div>
@@ -82,12 +83,12 @@
 import { ref, onMounted } from 'vue'
 import { articleAPI } from '../api'
 
-const columns = [
-  { key: 'blog', title: '技术文章', desc: '技术分享与教程', icon: '📝', link: '/blog' },
-  { key: 'leetcode', title: '算法笔记', desc: '算法题解笔记', icon: '💡', link: '/leetcode' },
-  { key: 'projects', title: '项目', desc: '项目复盘方案', icon: '🚀', link: '/projects' },
-  { key: 'notes', title: '碎碎念', desc: '日常随想记录', icon: '💬', link: '/notes' },
-]
+const columns = ref([
+  { key: 'blog', title: '技术文章', desc: '技术分享与教程', icon: '📝', link: '/blog', count: null },
+  { key: 'leetcode', title: '算法笔记', desc: '算法题解笔记', icon: '💡', link: '/leetcode', count: null },
+  { key: 'projects', title: '项目', desc: '项目复盘方案', icon: '🚀', link: '/projects', count: null },
+  { key: 'notes', title: '碎碎念', desc: '日常随想记录', icon: '💬', link: '/notes', count: null },
+])
 
 const timelineItems = ref([])
 const stats = ref({ articles: 0 })
@@ -124,6 +125,10 @@ onMounted(async () => {
     const res = await articleAPI.list({ limit: 200 })
     const all = res.data.articles || []
     stats.value.articles = res.data.total || all.length
+    // Update column counts
+    const catCounts = {}
+    all.forEach(a => { catCounts[a.category] = (catCounts[a.category] || 0) + 1 })
+    columns.value.forEach(c => { c.count = catCounts[c.key] || 0 })
     const groups = {}
     all.forEach(a => {
       const d = new Date(a.created_at)
@@ -166,4 +171,6 @@ onMounted(async () => {
   .home-timeline { padding-left: 12px; }
   .home-tl-marker { margin-left: -22px; }
 }
+
+.nav-card-count { font-size: 0.72rem; color: var(--text-muted); margin-left: 8px; white-space: nowrap; }
 </style>
