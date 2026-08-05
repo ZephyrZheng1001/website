@@ -3,7 +3,6 @@
 
     <!-- Header -->
     <section style="text-align:center;margin-bottom:52px;">
-      <img src="/avatar.jpg" alt="Zephyr" class="avatar-img" />
       <h1 style="font-size:2rem;margin-top:16px;">Zephyr</h1>
       <p style="color:var(--text-muted);margin-top:6px;">开发者 · 技术爱好者</p>
     </section>
@@ -52,7 +51,20 @@
       </div>
     </section>
 
-    <!-- Site info -->
+    <!-- Resume -->
+    <section class="card" style="text-align:center;padding:24px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;">
+        <span style="font-size:1.8rem;">📄</span>
+        <div style="text-align:left;">
+          <h3 style="font-size:0.95rem;color:var(--text);margin-bottom:2px;">我的简历</h3>
+          <a href="/resume.pdf" target="_blank" style="font-size:0.85rem;color:var(--accent);">
+            下载 PDF →
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Site info -->    <!-- Site info -->
     <section class="card" style="text-align:center;padding:24px;">
       <p style="color:var(--text-muted);font-size:0.88rem;">
         本站由 <strong>Go</strong> 驱动 &nbsp;·&nbsp; 部署在我自己的服务器上
@@ -62,15 +74,6 @@
 </template>
 
 <style scoped>
-.avatar-img {
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
-  object-fit: cover;
-  box-shadow: 0 4px 20px rgba(45,138,123,0.3);
-  display: block;
-  margin: 0 auto;
-}
 .contact-card {
   display: flex;
   align-items: center;
