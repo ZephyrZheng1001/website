@@ -106,16 +106,14 @@ async function fetchSiteStats() {
       totalWords += (a.content || a.summary || '').length
       totalViews += (a.view_count || 0)
     })
-    // Unique visitors via localStorage
-    var uvKey = 'zephyr_visited'
-    var uvCount = parseInt(localStorage.getItem(uvKey + '_count') || '0')
-    var lastVisit = localStorage.getItem(uvKey + '_date')
-    var today = new Date().toDateString()
-    if (lastVisit !== today) {
-      uvCount++
-      localStorage.setItem(uvKey + '_count', uvCount)
-      localStorage.setItem(uvKey + '_date', today)
-    }
+    // Record visitor + get real count from server
+    fetch('/api/visitor', { method: 'POST' }).catch(function(){})
+    var uvCount = 0
+    try {
+      var uvRes = await fetch('/api/visitors/count')
+      var uvData = await uvRes.json()
+      uvCount = uvData.data?.visitors || uvData.visitors || 0
+    } catch(e) {}
     siteStats.value = { articles: articles.length, words: Math.round(totalWords / 2), views: totalViews, visitors: uvCount }
   } catch(e) {}
 }

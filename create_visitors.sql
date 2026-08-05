@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS site_visitors (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  ip VARCHAR(45) NOT NULL,
+  user_agent VARCHAR(500) DEFAULT '',
+  visit_date DATE NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uk_ip_date (ip, visit_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
