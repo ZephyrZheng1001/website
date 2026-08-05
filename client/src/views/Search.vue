@@ -13,10 +13,12 @@
       <p style="margin-bottom:20px;">试试换个关键词？</p>
       <div v-if="suggestedArticles.length" style="text-align:left;max-width:500px;margin:0 auto;">
         <p style="font-size:0.85rem;margin-bottom:12px;">你可能想看：</p>
-        <router-link v-for="a in suggestedArticles" :key="a.id" :to="articleLink(a)" class="card" style="display:block;padding:12px 16px;margin-bottom:8px;">
-          <div style="font-size:0.9rem;font-weight:500;">{{ a.title }}</div>
-          <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">{{ catLabel(a.category) }} · {{ formatDate(a.created_at) }}</div>
-        </router-link>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <router-link v-for="a in suggestedArticles" :key="a.id" :to="articleLink(a)" class="card" style="display:block;padding:12px 16px;">
+            <div style="font-size:0.9rem;font-weight:500;">{{ a.title }}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">{{ catName(a.category) }} · {{ formatDate(a.created_at) }}</div>
+          </router-link>
+        </div>
       </div>
     </div>
     <div v-else-if="results.length > 0">
@@ -54,32 +56,13 @@ function highlightText(text, q) {
   var lower = text.toLowerCase()
   var qLower = q.toLowerCase()
   while (idx >= 0) {
-    out += text.substring(last, idx)
-    out += '<mark>' + text.substring(idx, idx + q.length) + '</mark>'
+    out += text.substring(last, idx).replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    out += '<mark>' + text.substring(idx, idx + q.length).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</mark>'
     last = idx + q.length
     idx = lower.indexOf(qLower, last)
   }
-  out += text.substring(last)
+  out += text.substring(last).replace(/</g, '&lt;').replace(/>/g, '&gt;')
   return out
-}
-
-function catLabel(c) {
-  var m = { blog: '技术文章', leetcode: '算法笔记', projects: '项目', study: '学习笔记', notes: '碎碎念' }
-  return m[c] || c
-}
-function catIcon(c) {
-  var m = { blog: '📝', leetcode: '💡', projects: '🚀', study: '📖', notes: '💬' }
-  return m[c] || '📋'
-}
-function articleLink(a) {
-  var cat = a.category || 'blog'
-  return cat === 'blog' ? '/blog/' + a.id : '/' + cat + '/' + a.id
-}
-function parseTags(t) {
-  if (!t) return []; return t.split(',').map(function(x){return x.trim()}).filter(Boolean).slice(0, 8)
-}
-function formatDate(d) {
-  return d ? new Date(d).toLocaleDateString('zh-CN') : ''
 }
 
 const query = ref('')
@@ -88,11 +71,17 @@ const loading = ref(false)
 const searched = ref(false)
 const suggestedArticles = ref([])
 
+function parseTags(tags) { if (!tags) return []; return tags.split(',').map(t => t.trim()).filter(Boolean).slice(0, 8) }
+function formatDate(d) { return d ? new Date(d).toLocaleDateString('zh-CN') : '' }
+function catIcon(cat) { const icons = { blog: '📝', leetcode: '💡', projects: '🚀', study: '📖', notes: '💬' }; return icons[cat] || '📄' }
+function catName(cat) { const names = { blog: '技术文章', leetcode: '算法笔记', projects: '项目', study: '学习笔记', notes: '碎碎念' }; return names[cat] || cat }
+function articleLink(article) { const cat = article.category; if (cat === 'blog') return '/blog/' + article.id; return '/' + cat + '/' + article.id }
+
 async function search() {
-  var q = query.value.trim()
+  const q = query.value.trim()
   if (!q) return
   loading.value = true; searched.value = true
-  try { var res = await articleAPI.search(q); results.value = res.data || [] }
+  try { const res = await articleAPI.search(q); results.value = res.data || [] }
   catch (e) { console.error(e); results.value = [] }
   finally {
     loading.value = false
@@ -100,7 +89,7 @@ async function search() {
       try {
         var sr = await articleAPI.list({ limit: 5 })
         suggestedArticles.value = sr.data.articles || []
-      } catch(e2) { suggestedArticles.value = [] }
+      } catch(e2) {}
     }
   }
 }
