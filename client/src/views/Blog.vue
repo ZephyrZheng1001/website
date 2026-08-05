@@ -131,12 +131,11 @@ function parseTags(tags) {
 }
 function readingTime(content) {
   if (!content) return '1 min'
-  // Strip markdown + HTML, count Chinese chars as 0.5 words
   const text = content.replace(/<[^>]*>/g, '').replace(/[#*_`~\[\]()>\-!|]/g, '')
-  const cnChars = (text.match(/[一-鿿]/g) || []).length
-  const enWords = text.replace(/[一-鿿]/g, '').split(/\s+/).filter(Boolean).length
-  const mins = Math.max(1, Math.ceil((cnChars / 400) + (enWords / 200)))
-  return mins + ' min'
+  const cnChars = (text.match(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g) || []).length
+  const enWords = text.replace(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g, '').split(/\s+/).filter(Boolean).length
+  const mins = Math.ceil((cnChars / 400) + (enWords / 200))
+  return (mins || 1) + ' min'
 }
 function formatDate(d) {
   if (!d) return ''

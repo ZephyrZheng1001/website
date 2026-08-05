@@ -83,7 +83,7 @@ const columns = [
   { key: 'notes', title: '碎碎念', desc: '日常随想记录', icon: '💬', link: '/notes' },
 ]
 
-const latestList = ref([])
+const timelineItems = ref([])
 const stats = ref({ articles: 0 })
 
 const yp = calcYearProgress()
@@ -93,8 +93,21 @@ const totalDays = ref(yp.totalDays)
 const yearPercent = ref(yp.percent)
 const currentTime = ref('')
 
-const colIcons = { blog: '📝', leetcode: '💡', projects: '🚀', study: '📖', notes: '💬' }
-const colNames = { blog: '技术文章', leetcode: '算法笔记', projects: '项目', study: '学习笔记', notes: '碎碎念' }
+function catLabel(c) {
+  const m = { blog: '技术文章', leetcode: '算法笔记', projects: '项目', study: '学习笔记', notes: '碎碎念' }
+  return m[c] || c
+}
+function dotClass(c) {
+  const m = { blog: 'dot-blog', leetcode: 'dot-leetcode', projects: 'dot-projects', study: 'dot-study', notes: 'dot-notes' }
+  return m[c] || 'dot-blog'
+}
+function articleLink(a) {
+  const cat = a.category || 'blog'
+  return cat === 'blog' ? '/blog/' + a.id : '/' + cat + '/' + a.id
+}
+function dayLabel(d) {
+  return d ? new Date(d).toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' }) : ''
+}
 
 function formatNow() { const n = new Date(); return n.getFullYear() + '-' + String(n.getMonth()+1).padStart(2,'0') + '-' + String(n.getDate()).padStart(2,'0') + ' ' + String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0') + ':' + String(n.getSeconds()).padStart(2,'0') }
 function calcYearProgress() {
@@ -120,28 +133,21 @@ onMounted(async () => {
   currentTime.value = formatNow()
   setInterval(() => { currentTime.value = formatNow() }, 1000)
   try {
-    const results = await Promise.all([
-      articleAPI.list({ page: 1, limit: 1, category: 'blog' }),
-      articleAPI.list({ page: 1, limit: 1, category: 'leetcode' }),
-      articleAPI.list({ page: 1, limit: 1, category: 'projects' }),
-      articleAPI.list({ page: 1, limit: 1, category: 'study' }),
-      articleAPI.list({ page: 1, limit: 1, category: 'notes' }),
-    ])
-    let total = 0
-    const cats = ['blog', 'leetcode', 'projects', 'study', 'notes']
-    cats.forEach((cat, i) => {
-      total += results[i].data.total
-      const a = results[i].data.articles?.[0]
-      if (a) {
-        latestList.value.push({
-          ...a,
-          column: colNames[cat],
-          icon: colIcons[cat],
-          link: cat === 'blog' ? `/blog/${a.id}` : `/${cat}/${a.id}`,
-        })
-      }
+    const res = await articleAPI.list({ limit: 200 })
+    const all = res.data.articles || []
+    stats.value.articles = res.data.total || all.length
+    // Group by year-month
+    const groups = {}
+    all.forEach(a => {
+      const d = new Date(a.created_at)
+      const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
+      if (!groups[key]) groups[key] = { year: d.getFullYear(), month: d.getMonth() + 1, key, articles: [] }
+      groups[key].articles.push(a)
     })
-    stats.value.articles = total
+    timelineItems.value = Object.values(groups).sort((a, b) => {
+      if (a.year !== b.year) return b.year - a.year
+      return b.month - a.month
+    })
   } catch (e) { console.error(e) }
 })
 </script>
@@ -190,5 +196,33 @@ onMounted(async () => {
 
 @media (max-width: 768px) {
   .nav-grid { grid-template-columns: 1fr; }
+}
+
+.home-timeline {
+  position: relative;
+  padding-left: 16px;
+  border-left: 2px solid var(--border);
+}
+.home-tl-group { margin-bottom: 20px; }
+.home-tl-marker {
+  display: flex; align-items: baseline; gap: 8px;
+  margin-bottom: 8px; margin-left: -26px;
+}
+.home-tl-year { font-size: 1rem; font-weight: 700; color: var(--accent); }
+.home-tl-month { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+.home-tl-cards { display: flex; flex-direction: column; gap: 6px; }
+.home-tl-card { padding: 12px 16px !important; display: block; }
+.home-tl-card:hover { text-decoration: none; transform: translateY(-1px); }
+.home-tl-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px;
+}
+.dot-blog { background: #2d8a7b; }
+.dot-leetcode { background: #e65100; }
+.dot-projects { background: #6c3fb5; }
+.dot-study { background: #2d7dd2; }
+.dot-notes { background: #d4a574; }
+@media (max-width: 768px) {
+  .home-timeline { padding-left: 12px; }
+  .home-tl-marker { margin-left: -22px; }
 }
 </style>

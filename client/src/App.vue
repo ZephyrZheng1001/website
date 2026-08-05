@@ -43,7 +43,6 @@
 
           <div class="sidebar-divider"></div>
           <router-link to="/study" class="sidebar-item" @click="sidebarOpen = false"><span>📖</span> 学习笔记</router-link>
-
           <router-link to="/about" class="sidebar-item" @click="sidebarOpen = false"><span>👤</span> 关于</router-link>
         </nav>
       </aside>
@@ -67,10 +66,6 @@
       <router-link to="/study" class="bottom-nav-item" active-class="active">
         <span>📖</span>
         <span>学习</span>
-      </router-link>
-      <router-link to="/timeline" class="bottom-nav-item" active-class="active">
-        <span>🕐</span>
-        <span>时光轴</span>
       </router-link>
       <router-link to="/about" class="bottom-nav-item" active-class="active">
         <span>👤</span>

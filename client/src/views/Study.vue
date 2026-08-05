@@ -111,11 +111,11 @@ function parseTags(tags) {
 }
 function readingTime(content) {
   if (!content) return '1 min'
-  const text = content.replace(/<[^>]*>/g, '').replace(/[#*_`~[\]()>\-!|]/g, '')
-  const cnChars = (text.match(/[\u4e00-\u9fff]/g) || []).length
-  const enWords = text.replace(/[\u4e00-\u9fff]/g, '').split(/\s+/).filter(Boolean).length
-  const mins = Math.max(1, Math.ceil((cnChars / 400) + (enWords / 200)))
-  return mins + ' min'
+  const text = content.replace(/<[^>]*>/g, '').replace(/[#*_`~\[\]()>\-!|]/g, '')
+  const cnChars = (text.match(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g) || []).length
+  const enWords = text.replace(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g, '').split(/\s+/).filter(Boolean).length
+  const mins = Math.ceil((cnChars / 400) + (enWords / 200))
+  return (mins || 1) + ' min'
 }
 function formatDate(d) { return d ? new Date(d).toLocaleDateString('zh-CN') : '' }
 function statusClass(s) { if (s === 'done') return 'status-done'; if (s === 'todo') return 'status-todo'; return 'status-doing' }
