@@ -279,11 +279,11 @@ ssh admin@47.116.136.145 "sudo systemctl stop zephyr-api && sudo cp ~/server_lin
 
 ---
 
-## Recent Changes
+## ????
 
-### 2026-08-05: Remove reading position memory
+### 2026-08-05: Remove reading position memory + cleanup
 - Removed `saveReadPos()` and all localStorage scroll-position save/restore logic in Article.vue
 - Articles now always start from top; no more auto-scrolling to last position
 - Cleaned 15 temp/dev scripts from repo root
 - Fixed `inject_word.py` to deduplicate `__DAILY_WORD__` blocks in index.html (was accumulating 6 blocks)
-- Cleaned server: removed old `server` binary, `go.mod`, `go.sum`, `main.go`, `app.log` from `/opt/zephyr/server/`
+- Cleaned server junk from `/opt/zephyr/server/`: old `server` binary, `go.mod`, `go.sum`, `main.go`, `app.log`

@@ -73,17 +73,17 @@ dda6daf feat: 文章置顶、阅读时长、图片点击放大+懒加载、时�
 
 ---
 
-## 2026-08-05 Session: ???????? + ????
+## 2026-08-05 Session: Remove reading position memory + cleanup
 
 ### Changes
-- **Article.vue**: ?? `saveReadPos()` ???onMounted ? localStorage ?????????scroll ???? saveReadPos ???watch ? restoreReadingProgress() ??
-- **inject_word.py**: ???????????????? `__DAILY_WORD__` ???? index.html ???????
-- **index.html**: ? 6 ??? DAILY_WORD ???? 1 ?
+- **Article.vue**: Removed `saveReadPos()` function, localStorage scroll-position restore in onMounted, `saveReadPos()` call in scroll listener, `restoreReadingProgress()` call in watch
+- **inject_word.py**: Fixed dedup logic ? clears old `__DAILY_WORD__` blocks before injecting, prevents accumulation
+- **index.html**: Cleaned from 6 duplicate DAILY_WORD blocks down to 1
 
 ### Cleanup
-- ??: ?? 15 ??????? (fix*.py, patch.py, test*.py, show*.py)
-- ???: ?? `/opt/zephyr/server/` ????? (go.mod, go.sum, main.go, app.log, server ????)
+- Local: Deleted 15 temp scripts (fix*.py, patch.py, test*.py, show*.py)
+- Server: Removed junk from `/opt/zephyr/server/` (go.mod, go.sum, main.go, app.log, old `server` binary)
 
 ### Effect
-- ?????????????????????????
-- App.vue ???????????????
+- Every article now opens from the top; no more auto-scrolling to last read position
+- App.vue reading progress bar (the colored line at top) is kept
