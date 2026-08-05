@@ -241,6 +241,10 @@ function scrollToHeading(id) {
   }
 }
 
+function saveReadPos() {
+  if (!article.value?.id) return
+  try { localStorage.setItem('zephyr_read_' + article.value.id, window.scrollY) } catch(e) {}
+}
 function onScroll() {
   if (!contentRef.value || toc.value.length === 0) return
   const headings = contentRef.value.querySelectorAll('h2, h3')
@@ -341,12 +345,17 @@ onMounted(async () => {
     article.value = res.data.article || res.data
     prevNext.value = { prev: res.data.prev || null, next: res.data.next || null }
     document.title = (article.value.title || '') + ' - Zephyr'
+    // Restore reading position
+    try {
+      var saved = parseInt(localStorage.getItem('zephyr_read_' + article.value.id) || '0')
+      if (saved > 100) { setTimeout(function() { window.scrollTo({ top: saved }) }, 300) }
+    } catch(e) {}
     await nextTick()
     extractTOC()
     injectCopyButtons()
     injectMermaid()
     injectImageZoom()
-    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('scroll', function(e) { onScroll(); saveReadPos() }, { passive: true })
   } catch (e) {
     console.error(e)
   } finally {

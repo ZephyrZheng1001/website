@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="app-shell">
     <!-- Top bar -->
     <header class="top-bar">
