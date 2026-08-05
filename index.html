@@ -12,10 +12,25 @@
     <meta property="og:description" content="技术文章、算法笔记、项目复盘、学习记录" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://zephyrzheng.cn" />
-    <script type="module" crossorigin src="/assets/index-B-Bu-o-Q.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-C3CKQzCK.css">
+    <script>
+      (function() {
+        var t = localStorage.getItem('theme');
+        if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-B3DC-fpR.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-Dys0IdN_.css">
   </head>
   <body>
     <div id="app"></div>
+    <script>
+      document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+          e.preventDefault();
+          window.location.hash = '/search';
+        }
+      });
+    </script>
   </body>
 </html>
