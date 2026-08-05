@@ -175,7 +175,7 @@ const sidebarOpen = ref(false)
 .sidebar-nav { display: flex; flex-direction: column; gap: 1px; }
 .sidebar-item {
   display: flex; align-items: center; gap: 10px;
-  padding: 9px 14px; border-radius: 8px;
+  padding: 10px 16px; border-radius: 8px;
   font-size: 0.9rem; color: var(--text-muted);
   transition: all 0.15s; min-height: 40px;
 }
@@ -184,15 +184,15 @@ const sidebarOpen = ref(false)
   background: var(--accent-light); color: var(--accent); font-weight: 600;
 }
 .sidebar-item span { font-size: 0.9rem; }
-.sidebar-sub { padding-left: 30px; font-size: 0.86rem; }
+.sidebar-sub { padding-left: 32px; font-size: 0.86rem; }
 .sidebar-group { margin: 8px 0 4px; }
 .sidebar-group-title {
-  display: block; padding: 8px 14px 4px;
+  display: block; padding: 10px 16px 6px;
   font-size: 0.7rem; font-weight: 700;
   color: var(--text-muted); text-transform: uppercase;
   letter-spacing: 1.4px;
 }
-.sidebar-divider { height: 1px; background: var(--border); margin: 10px 14px 6px; }
+.sidebar-divider { height: 1px; background: var(--border); margin: 12px 16px 8px; }
 
 /* Main content */
 .main-content { margin-left: 240px; flex: 1; min-width: 0; padding-bottom: 20px; }
@@ -221,7 +221,7 @@ const sidebarOpen = ref(false)
 [data-theme="dark"] .bottom-nav { background: rgba(17,21,24,0.95); }
 .bottom-nav-item {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 2px; flex: 1;
+  gap: 3px; flex: 1;
   background: none; border: none; cursor: pointer;
   color: var(--text-muted); font-size: 0.65rem;
   padding: 6px 4px; font-family: inherit;

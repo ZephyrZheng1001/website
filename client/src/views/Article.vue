@@ -346,7 +346,7 @@ onMounted(async () => {
   flex-direction: column;
   gap: 2px;
   border-left: 2px solid var(--border);
-  padding-left: 12px;
+  padding-left: 14px;
 }
 .toc-item {
   font-size: 0.8rem;
@@ -392,7 +392,7 @@ onMounted(async () => {
 }
 .prev-next-link {
   display: block;
-  padding: 12px 16px;
+  padding: 14px 18px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   transition: all 0.2s;

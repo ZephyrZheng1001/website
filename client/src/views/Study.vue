@@ -41,8 +41,8 @@
           <router-link to="/admin" class="btn btn-primary">去写一篇 →</router-link>
         </div>
 
-        <div v-else style="display:flex;flex-direction:column;gap:14px;">
-          <router-link v-for="article in filteredArticles" :key="article.id" :to="'/study/' + article.id" class="card study-card" style="display:flex;align-items:center;gap:16px;padding:16px 20px;">
+        <div v-else style="display:flex;flex-direction:column;gap:16px;">
+          <router-link v-for="article in filteredArticles" :key="article.id" :to="'/study/' + article.id" class="card study-card" style="display:flex;align-items:center;gap:16px;padding:18px 22px;">
             <div class="study-status-dot" :class="statusClass(article.study_status)" :title="statusLabel(article.study_status)"></div>
             <div style="flex:1;min-width:0;">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
@@ -148,7 +148,7 @@ onMounted(fetchData)
 .study-layout { display: flex; gap: 32px; }
 .study-sidebar { width: 180px; flex-shrink: 0; }
 .sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
-.sidebar-link { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 6px; font-size: 0.88rem; color: var(--text-muted); transition: all 0.15s; background: none; border: none; cursor: pointer; text-align: left; width: 100%; font-family: inherit; }
+.sidebar-link { display: flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 6px; font-size: 0.88rem; color: var(--text-muted); transition: all 0.15s; background: none; border: none; cursor: pointer; text-align: left; width: 100%; font-family: inherit; }
 .sidebar-link:hover { background: var(--bg-hover); color: var(--text); }
 .sidebar-link.active { background: var(--accent-light); color: var(--accent); font-weight: 600; }
 .sidebar-icon { font-size: 0.9rem; }

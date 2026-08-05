@@ -2,24 +2,24 @@
   <div style="padding-top:48px;padding-bottom:32px;max-width:720px;margin:0 auto;padding-left:24px;padding-right:24px;">
 
     <!-- Hero -->
-    <section style="margin-bottom:48px;">
-      <h1 style="font-size:2.4rem;font-weight:800;letter-spacing:-0.8px;line-height:1.25;margin-bottom:14px;">
+    <section style="margin-bottom:56px;">
+      <h1 style="font-size:2.4rem;font-weight:800;letter-spacing:-0.5px;line-height:1.3;margin-bottom:18px;">
         你好，我是Zephyr！
       </h1>
-      <p style="font-size:1.05rem;color:var(--text-muted);max-width:520px;line-height:1.7;">
+      <p style="font-size:1.08rem;color:var(--text-muted);max-width:560px;line-height:1.8;">
         欢迎来到我的主页，我是郑智毅，就读于同济大学计算机专业。在这里你可以了解我所学的知识，也可以<a href="/#/about" style="color:var(--accent);text-decoration:underline;">了解我</a>
       </p>
     </section>
 
     <!-- Stats line -->
-    <section style="display:flex;gap:40px;padding:16px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:40px;font-size:0.88rem;color:var(--text-muted);">
+    <section style="display:flex;gap:48px;padding:18px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:44px;font-size:0.88rem;color:var(--text-muted);">
       <div><strong style="color:var(--accent);">{{ stats.articles }}</strong> 篇文章</div>
       <div><strong style="color:var(--accent);">Always</strong> 在线</div>
     </section>
 
     <!-- 年度进度 -->
     <section style="margin-bottom:40px;">
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;box-shadow:var(--shadow);">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:22px 28px;box-shadow:var(--shadow);">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
           <span style="font-weight:600;font-size:0.95rem;color:var(--text);">{{ currentYear }} 年度进度 · 当前时间 {{ currentTime }}</span>
           <span style="font-size:0.9rem;font-weight:700;color:var(--accent);">{{ yearPercent }}%</span>
@@ -50,8 +50,8 @@
     </section>
 
     <!-- Latest from each column -->
-    <section v-if="latestList.length" style="margin-top:48px;">
-      <h3 style="font-size:1rem;color:var(--text-muted);font-weight:500;margin-bottom:16px;">最近更新</h3>
+    <section v-if="latestList.length" style="margin-top:52px;">
+      <h3 style="font-size:1rem;color:var(--text-muted);font-weight:500;margin-bottom:20px;">最近更新</h3>
       <div style="display:flex;flex-direction:column;gap:12px;">
         <router-link
           v-for="item in latestList"
@@ -156,7 +156,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px;
+  padding: 18px;
   cursor: pointer;
 }
 .nav-card:hover { text-decoration: none; }

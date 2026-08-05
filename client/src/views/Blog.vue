@@ -206,7 +206,7 @@ fetchColumnCounts()
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 9px 14px;
   border-radius: 6px;
   font-size: 0.88rem;
   color: var(--text-muted);

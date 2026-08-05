@@ -25,7 +25,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Noto Sans SC', sans-serif;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.7;
+  line-height: 1.82;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
@@ -95,7 +95,7 @@ a:hover { color: #236b60; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 9px 22px;
+  padding: 10px 24px;
   border: none;
   border-radius: var(--radius-sm);
   font-size: 0.9rem;
@@ -124,7 +124,7 @@ a:hover { color: #236b60; }
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 22px;
+  padding: 24px;
   transition: box-shadow 0.25s, border-color 0.25s, transform 0.2s;
   box-shadow: var(--shadow);
 }
@@ -170,7 +170,7 @@ a:hover { color: #236b60; }
 .form-group textarea,
 .form-group select {
   width: 100%;
-  padding: 10px 14px;
+  padding: 11px 15px;
   background: var(--bg);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
@@ -191,16 +191,16 @@ a:hover { color: #236b60; }
 /* ---- Article Content ---- */
 .article-content {
   font-size: 1.02rem;
-  line-height: 1.85;
+  line-height: 1.92;
   color: #2d3a38;
 }
-.article-content h1 { font-size: 1.7rem; margin: 1.6em 0 0.5em; font-weight: 700; }
-.article-content h2 { font-size: 1.35rem; margin: 1.4em 0 0.5em; font-weight: 600; }
-.article-content h3 { font-size: 1.1rem; margin: 1.2em 0 0.4em; font-weight: 600; color: #3a4a47; }
-.article-content p { margin-bottom: 1em; }
-.article-content ul, .article-content ol { margin-bottom: 1em; padding-left: 1.4em; }
+.article-content h1 { font-size: 1.75rem; margin: 2em 0 0.6em; font-weight: 700; letter-spacing: -0.3px; }
+.article-content h2 { font-size: 1.4rem; margin: 1.8em 0 0.5em; font-weight: 600; }
+.article-content h3 { font-size: 1.12rem; margin: 1.5em 0 0.4em; font-weight: 600; color: #3a4a47; }
+.article-content p { margin-bottom: 1.3em; }
+.article-content ul, .article-content ol { margin-bottom: 1.3em; padding-left: 1.5em; }
 .article-content li { margin-bottom: 0.35em; }
-.article-content blockquote {
+.article-content blockquote { padding: 16px 22px;
   border-left: 3px solid var(--accent);
   padding: 10px 18px;
   margin: 1.2em 0;
@@ -216,7 +216,7 @@ a:hover { color: #236b60; }
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
   color: #2d6b5f;
 }
-.article-content pre {
+.article-content pre { padding: 18px 22px;
   background: #f4f6f5;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -264,7 +264,7 @@ a:hover { color: #236b60; }
   border-bottom: 2px solid var(--border);
 }
 .article-content th {
-  padding: 10px 14px;
+  padding: 11px 15px;
   text-align: left;
   font-weight: 600;
   font-size: 0.85rem;
@@ -382,7 +382,7 @@ a:hover { color: #236b60; }
   height: 100%;
   font-size: 0.92rem;
   font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
-  line-height: 1.7;
+  line-height: 1.82;
   padding: 16px 20px;
   background: var(--bg-card);
   border: 1.5px solid var(--border);
@@ -407,7 +407,7 @@ a:hover { color: #236b60; }
   .container { padding: 0 16px; max-width: 100%; }
   .nav-links { gap: 14px; }
   .editor-wrap { grid-template-columns: 1fr; }
-  .card { padding: 16px; }
+  .card { padding: 18px; }
   .btn { min-height: 42px; }
   .btn-sm { min-height: 34px; }
   h1 { font-size: 1.5rem !important; }
@@ -441,9 +441,9 @@ a:hover { color: #236b60; }
 [data-theme="dark"] .navbar { background: rgba(17,21,24,0.88); }
 [data-theme="dark"] .article-content { color: #d0d5da; }
 [data-theme="dark"] .article-content code { background: #22272e; color: #6ecbb5; }
-[data-theme="dark"] .article-content pre { background: #161b1f; }
+[data-theme="dark"] .article-content pre { padding: 18px 22px; background: #161b1f; }
 [data-theme="dark"] .article-content pre code { color: #d0d5da; }
-[data-theme="dark"] .article-content blockquote { background: #1a2d28; color: #8db8a8; }
+[data-theme="dark"] .article-content blockquote { padding: 16px 22px; background: #1a2d28; color: #8db8a8; }
 [data-theme="dark"] .article-content thead { border-bottom-color: var(--border); }
 [data-theme="dark"] .article-content th { background: #1e2227; }
 [data-theme="dark"] .article-content td { border-bottom-color: var(--border); }
