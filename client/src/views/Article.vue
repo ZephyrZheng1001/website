@@ -129,7 +129,8 @@ marked.Renderer.prototype.code = function(token) {
   const code = token.text || ''
     if (lang === 'mermaid') {
     try {
-      var encoded = btoa(Array.from(new TextEncoder().encode(code.trim()), function(b) { return String.fromCharCode(b) }).join(''));
+      var bytes = new TextEncoder().encode(code.trim());
+    var encoded = btoa(String.fromCharCode(...bytes));
       return '<div class="mermaid-container" style="text-align:center;margin:1em 0"><img src="https://mermaid.ink/img/' + encoded + '" alt="diagram" style="max-width:100%;border-radius:8px" /></div>';
     } catch(e) {
       return '<pre><code>' + e.message + '</code></pre>';
