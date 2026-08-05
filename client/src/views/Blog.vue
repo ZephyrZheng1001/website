@@ -94,12 +94,12 @@ const columns = {
   study: { title: '学习笔记', desc: '系统化学习记录', icon: '📓' },
 }
 
-const allColumns = [
+const allColumns = ref([
   { key: 'blog', title: '技术文章', icon: '📝', count: null },
   { key: 'leetcode', title: '算法笔记', icon: '💡', count: null },
   { key: 'projects', title: '项目', icon: '🚀', count: null },
   { key: 'notes', title: '碎碎念', icon: '💬', count: null },
-]
+])
 
 const routeName = computed(() => route.name?.toLowerCase() || 'blog')
 const category = computed(() => routeName.value)
@@ -166,18 +166,18 @@ async function fetchAllTags() {
 }
 
 async function fetchColumnCounts() {
-  try {
-    const results = await Promise.all([
-      articleAPI.list({ category: 'blog', limit: 1 }),
-      articleAPI.list({ category: 'leetcode', limit: 1 }),
-      articleAPI.list({ category: 'projects', limit: 1 }),
-      articleAPI.list({ category: 'notes', limit: 1 }),
-    ])
-    allColumns[0].count = results[0].data.total || 0
-    allColumns[1].count = results[1].data.total || 0
-    allColumns[2].count = results[2].data.total || 0
-    allColumns[3].count = results[3].data.total || 0
-  } catch (e) { /* silent */ }
+  const cats = ['blog', 'leetcode', 'projects', 'notes']
+  const results = await Promise.allSettled(
+    cats.map(c => articleAPI.list({ category: c, limit: 1 }))
+  )
+  // Trigger reactivity by replacing entire array
+  const updated = allColumns.value.map((col, i) => {
+    const r = results[i]
+    const total = (r.status === 'fulfilled' && r.value?.data?.total !== undefined)
+      ? r.value.data.total : col.count
+    return { ...col, count: total }
+  })
+  allColumns.value = updated
 }
 
 // Watch both category and tag changes
@@ -185,6 +185,7 @@ watch(() => [category.value, route.query.tag], () => { page.value = 1; fetchArti
 onMounted(() => { fetchArticles(); fetchAllTags(); fetchColumnCounts() })
 watch(category, () => { fetchAllTags(); fetchColumnCounts() })
 watch(() => route.fullPath, () => { fetchColumnCounts() })
+fetchColumnCounts()
 </script>
 
 <style scoped>
