@@ -362,6 +362,30 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+// Watch for route param changes (same component, different article)
+watch(() => route.params.id, async (newId) => {
+  if (!newId) return
+  loading.value = true
+  article.value = null
+  window.scrollTo({ top: 0 })
+  try {
+    const res = await articleAPI.get(newId)
+    article.value = res.data.article || res.data
+    prevNext.value = { prev: res.data.prev || null, next: res.data.next || null }
+    document.title = (article.value.title || '') + ' - Zephyr'
+    await nextTick()
+    extractTOC()
+    injectCopyButtons()
+    injectMermaid()
+    injectImageZoom()
+    restoreReadingProgress()
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
+})
 </script>
 <style scoped>
 .article-layout {
