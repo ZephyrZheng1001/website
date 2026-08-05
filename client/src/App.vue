@@ -80,7 +80,13 @@
       </button>
     </nav>
 
+    <footer class="site-footer">
+      <p>{{ siteStats.articles }} 篇文章 · 约 {{ siteStats.words }} 字 · <router-link to="/admin">管理</router-link></p>
+      <p><a href="/#/about">关于</a> · <a href="https://github.com/ZephyrZheng1001" target="_blank">GitHub</a> · <a href="/resume.pdf" target="_blank">简历</a></p>
+      <p style="margin-top:6px;font-size:0.7rem;">&copy; 2026 Zephyr · Powered by Go &amp; Vue</p>
+    </footer>
   </div>
+
 </template>
 
 <script setup>

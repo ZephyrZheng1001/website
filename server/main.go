@@ -98,7 +98,7 @@ func getArticles(w http.ResponseWriter, r *http.Request) {
 		where = " WHERE " + strings.Join(conditions, " AND ")
 	}
 
-	query := "SELECT id, title, COALESCE(content, summary) as content, summary, tags, category, subcategory, study_status, is_pinned, view_count, created_at, updated_at FROM articles" + where + " ORDER BY is_pinned DESC, created_at DESC LIMIT ? OFFSET ?"
+	query := "SELECT id, title, CASE WHEN content IS NULL OR content = \x27\x27 THEN summary ELSE content END as content, summary, tags, category, subcategory, study_status, is_pinned, view_count, created_at, updated_at FROM articles" + where + " ORDER BY is_pinned DESC, created_at DESC LIMIT ? OFFSET ?"
 	countQuery := "SELECT COUNT(*) FROM articles" + where
 
 	args = append(args, limit, offset)
@@ -109,10 +109,15 @@ func getArticles(w http.ResponseWriter, r *http.Request) {
 	var articles []Article
 	for rows.Next() {
 		var a Article
-		rows.Scan(&a.ID, &a.Title, &a.Summary, &a.Tags, &a.Category, &a.Subcategory, &a.StudyStatus, &a.IsPinned, &a.ViewCount, &a.CreatedAt, &a.UpdatedAt)
+		rows.Scan(&a.ID, &a.Title, &a.Content, &a.Summary, &a.Tags, &a.Category, &a.Subcategory, &a.StudyStatus, &a.IsPinned, &a.ViewCount, &a.CreatedAt, &a.UpdatedAt)
 		articles = append(articles, a)
 	}
 	if articles == nil { articles = []Article{} }
+	for i := range articles {
+		if articles[i].Content == "" {
+			articles[i].Content = articles[i].Summary
+		}
+	}
 
 	var total int
 	countArgs := args[:len(args)-2]
@@ -201,6 +206,11 @@ func adminGetArticles(w http.ResponseWriter, r *http.Request) {
 		articles = append(articles, a)
 	}
 	if articles == nil { articles = []Article{} }
+	for i := range articles {
+		if articles[i].Content == "" {
+			articles[i].Content = articles[i].Summary
+		}
+	}
 	writeJSON(w, 200, APIResponse{Success: true, Data: map[string]interface{}{"articles": articles}})
 }
 
@@ -279,7 +289,7 @@ func searchArticles(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, 200, APIResponse{Success: true, Data: []Article{}})
 		return
 	}
-	query := "SELECT id, title, COALESCE(content, summary) as content, summary, tags, category, subcategory, study_status, is_pinned, view_count, created_at, updated_at FROM articles WHERE title LIKE ? OR content LIKE ? OR summary LIKE ? OR tags LIKE ? ORDER BY is_pinned DESC, created_at DESC LIMIT 50"
+	query := "SELECT id, title, CASE WHEN content IS NULL OR content = \x27\x27 THEN summary ELSE content END as content, summary, tags, category, subcategory, study_status, is_pinned, view_count, created_at, updated_at FROM articles WHERE title LIKE ? OR content LIKE ? OR summary LIKE ? OR tags LIKE ? ORDER BY is_pinned DESC, created_at DESC LIMIT 50"
 	like := "%" + q + "%"
 	rows, err := db.Query(query, like, like, like, like)
 	if err != nil {
@@ -290,7 +300,7 @@ func searchArticles(w http.ResponseWriter, r *http.Request) {
 	var articles []Article
 	for rows.Next() {
 		var a Article
-		rows.Scan(&a.ID, &a.Title, &a.Summary, &a.Tags, &a.Category, &a.Subcategory, &a.StudyStatus, &a.IsPinned, &a.ViewCount, &a.CreatedAt, &a.UpdatedAt)
+		rows.Scan(&a.ID, &a.Title, &a.Content, &a.Summary, &a.Tags, &a.Category, &a.Subcategory, &a.StudyStatus, &a.IsPinned, &a.ViewCount, &a.CreatedAt, &a.UpdatedAt)
 		articles = append(articles, a)
 	}
 	if articles == nil {
