@@ -1,4 +1,4 @@
-﻿import axios from 'axios'
+import axios from 'axios'
 
 const api = axios.create({
   baseURL: '/api',
@@ -27,9 +27,9 @@ api.interceptors.response.use(
 export const articleAPI = {
   list: (params) => api.get('/articles', { params }),
   get: (id) => api.get(`/articles/${id}`),
+  search: (q) => api.get('/search', { params: { q } }),
 }
 
-// ---- Admin APIs (need auth) ----
 // ---- Admin APIs (need auth) ----
 export const studyCategoryAPI = {
   list: () => api.get('/study-categories'),

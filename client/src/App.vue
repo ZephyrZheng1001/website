@@ -68,6 +68,10 @@
         <span>📖</span>
         <span>学习</span>
       </router-link>
+      <router-link to="/timeline" class="bottom-nav-item" active-class="active">
+        <span>🕐</span>
+        <span>时光轴</span>
+      </router-link>
       <router-link to="/about" class="bottom-nav-item" active-class="active">
         <span>👤</span>
         <span>关于</span>

@@ -74,7 +74,7 @@
           <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
             <div style="flex:1;min-width:0;">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                <strong style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ a.title }}</strong>
+                <span v-if="a.is_pinned" title="置顶" style="font-size:0.8rem;">📌</span><strong style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ a.title }}</strong>
                 <span class="tag" style="font-size:0.7rem;padding:1px 7px;">{{ catLabel(a.category) }}</span>
               </div>
               <div style="display:flex;flex-wrap:wrap;gap:4px;">
@@ -127,6 +127,13 @@
         <div class="form-group">
           <label>摘要</label>
           <textarea v-model="editorForm.summary" placeholder="简短摘要（可选）" rows="2"></textarea>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+            <input type="checkbox" v-model="editorForm.is_pinned" style="width:auto;accent-color:var(--accent);" />
+            <span style="font-size:0.85rem;color:var(--text-muted);user-select:none;">📌 置顶文章</span>
+          </label>
+          <span v-if="editorForm.is_pinned" style="font-size:0.75rem;color:var(--accent);">（将显示在各分类列表最前）</span>
         </div>
         <div class="form-group">
           <label>标签（逗号分隔）</label>
@@ -299,7 +306,7 @@ const studyColumns = ref([])
 const newCat = ref({ name: '', icon: '' })
 
 const pwForm = ref({ old_password: '', new_password: '', confirm: '' });
-const editorForm = ref({ title: '', content: '', summary: '', tags: '', category: 'blog', subcategory: '', study_status: '' })
+const editorForm = ref({ title: '', content: '', summary: '', tags: '', category: 'blog', subcategory: '', study_status: '', is_pinned: false })
 
 const previewContent = computed(() => {
   if (!editorForm.value.content) return '<span style="color:#888">预览...</span>'
@@ -363,13 +370,13 @@ function applyArticleFilter() {
 function openWrite() {
   tab.value = 'write'
   editingId.value = null
-  editorForm.value = { title: '', content: '', summary: '', tags: '', category: 'blog', subcategory: '', study_status: '' }
+  editorForm.value = { title: '', content: '', summary: '', tags: '', category: 'blog', subcategory: '', study_status: '', is_pinned: false }
 }
 
 function editArticle(a) {
   tab.value = 'write'
   editingId.value = a.id
-  editorForm.value = { title: a.title, content: a.content, summary: a.summary, tags: a.tags, category: a.category || 'blog', subcategory: a.subcategory || '', study_status: a.study_status || '' }
+  editorForm.value = { title: a.title, content: a.content, summary: a.summary, tags: a.tags, category: a.category || 'blog', subcategory: a.subcategory || '', study_status: a.study_status || '', is_pinned: a.is_pinned || false }
 }
 
 async function saveArticle() {

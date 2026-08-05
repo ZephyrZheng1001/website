@@ -55,7 +55,7 @@
             class="card"
             style="display:block;"
           >
-            <h2 style="font-size:1.2rem;margin-bottom:8px;color:var(--text);">{{ article.title }}</h2>
+            <h2 style="font-size:1.2rem;margin-bottom:8px;color:var(--text);">{{ article.is_pinned ? '📌 ' : '' }}{{ article.title }}</h2>
             <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:10px;line-height:1.5;">
               {{ article.summary || article.content?.slice(0, 150) + '...' }}
             </p>
@@ -63,7 +63,7 @@
               <div>
                 <span v-for="tag in parseTags(article.tags)" :key="tag" :class="getTagClass(tag)" style="cursor:pointer;" @click.prevent="goToTag(tag)">{{ cleanTag(tag) }}</span>
               </div>
-              <span style="color:var(--text-muted);font-size:0.8rem;">{{ formatDate(article.created_at) }}</span>
+              <span style="color:var(--text-muted);font-size:0.78rem;">{{ formatDate(article.created_at) }} · {{ readingTime(article.content || article.summary) }}</span>
             </div>
           </router-link>
         </div>
@@ -128,6 +128,15 @@ function cleanTag(tag) {
 function parseTags(tags) {
   if (!tags) return []
   return tags.split(',').map(t => t.trim()).filter(Boolean)
+}
+function readingTime(content) {
+  if (!content) return '1 min'
+  // Strip markdown + HTML, count Chinese chars as 0.5 words
+  const text = content.replace(/<[^>]*>/g, '').replace(/[#*_`~\[\]()>\-!|]/g, '')
+  const cnChars = (text.match(/[一-鿿]/g) || []).length
+  const enWords = text.replace(/[一-鿿]/g, '').split(/\s+/).filter(Boolean).length
+  const mins = Math.max(1, Math.ceil((cnChars / 400) + (enWords / 200)))
+  return mins + ' min'
 }
 function formatDate(d) {
   if (!d) return ''

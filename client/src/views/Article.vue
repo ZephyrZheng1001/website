@@ -35,7 +35,7 @@
 
           <div style="display:flex;gap:12px;align-items:center;margin-bottom:32px;flex-wrap:wrap;">
             <span v-for="tag in parseTags(article.tags)" :key="tag" :class="getTagClass(tag)">{{ cleanTag(tag) }}</span>
-            <span style="color:var(--text-muted);font-size:0.85rem;">{{ formatDate(article.created_at) }}</span>
+            <span style="color:var(--text-muted);font-size:0.85rem;">{{ formatDate(article.created_at) }} · {{ readingTime(article.content) }}</span>
           </div>
 
           <div ref="contentRef" class="article-content" v-html="renderedContent"></div>
@@ -213,6 +213,14 @@ function parseTags(tags) {
   if (!tags) return []
   return tags.split(',').map(t => t.trim()).filter(Boolean)
 }
+function readingTime(content) {
+  if (!content) return '1 min'
+  const text = content.replace(/<[^>]*>/g, '').replace(/[#*_`~[\]()>\-!|]/g, '')
+  const cnChars = (text.match(/[\u4e00-\u9fff]/g) || []).length
+  const enWords = text.replace(/[\u4e00-\u9fff]/g, '').split(/\s+/).filter(Boolean).length
+  const mins = Math.max(1, Math.ceil((cnChars / 400) + (enWords / 200)))
+  return mins + ' min'
+}
 function formatDate(d) {
   if (!d) return ''
   return new Date(d).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
@@ -245,6 +253,22 @@ function onScroll() {
     if (rect.top <= 100) current = h.id
   })
   if (current) activeTocId.value = current
+}
+
+function injectImageZoom() {
+  if (!contentRef.value) return
+  contentRef.value.querySelectorAll('img').forEach(img => {
+    if (img.closest('.katex-block') || img.closest('.mermaid-container') || img.classList.contains('no-zoom')) return
+    img.loading = 'lazy'
+    img.style.cursor = 'zoom-in'
+    img.addEventListener('click', () => {
+      const overlay = document.createElement('div')
+      overlay.className = 'img-overlay'
+      overlay.innerHTML = '<img src="' + img.src + '" style="max-width:90vw;max-height:90vh;object-fit:contain;border-radius:8px;" />'
+      overlay.addEventListener('click', () => overlay.remove())
+      document.body.appendChild(overlay)
+    })
+  })
 }
 
 function injectCopyButtons() {
@@ -295,6 +319,7 @@ watch(renderedContent, async () => {
   extractTOC()
   injectCopyButtons()
   injectMermaid()
+  injectImageZoom()
 })
 
 onMounted(async () => {
@@ -307,6 +332,7 @@ onMounted(async () => {
     extractTOC()
     injectCopyButtons()
     injectMermaid()
+    injectImageZoom()
     window.addEventListener('scroll', onScroll, { passive: true })
   } catch (e) {
     console.error(e)
@@ -422,4 +448,14 @@ onMounted(async () => {
   .toc-nav { flex-direction: row; flex-wrap: wrap; gap: 8px; border-left: none; padding-left: 0; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 20px; }
   .toc-level-3 { padding-left: 0; }
 }
+
+/* Image zoom overlay */
+:deep(.img-overlay) {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999; cursor: zoom-out;
+}
+:deep(.img-overlay img) { box-shadow: 0 8px 40px rgba(0,0,0,0.5); }
+[data-theme="dark"] :deep(.img-overlay) { background: rgba(0,0,0,0.92); }
 </style>

@@ -47,12 +47,12 @@
             <div style="flex:1;min-width:0;">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
                 <span v-if="article.is_pinned" style="font-size:0.75rem;" title="置顶">📌</span>
-                <span style="font-size:0.95rem;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ article.title }}</span>
+                <span style="font-size:0.95rem;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ article.is_pinned ? '📌 ' : '' }}{{ article.title }}</span>
               </div>
               <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                 <span v-if="article.subcategory" style="font-size:0.75rem;color:var(--accent);background:var(--accent-light);padding:1px 8px;border-radius:8px;">{{ subNames[article.subcategory] || article.subcategory }}</span>
                 <span v-for="tag in parseTags(article.tags)" :key="tag" style="font-size:0.75rem;color:var(--text-muted);">#{{ tag }}</span>
-                <span style="font-size:0.75rem;color:var(--text-muted);margin-left:auto;">{{ formatDate(article.created_at) }}</span>
+                <span style="font-size:0.75rem;color:var(--text-muted);margin-left:auto;">{{ formatDate(article.created_at) }} · {{ readingTime(article.content || article.summary) }}</span>
               </div>
             </div>
             <span style="color:var(--text-muted);font-size:0.85rem;">→</span>
@@ -108,6 +108,14 @@ const filteredArticles = computed(() => {
 function parseTags(tags) {
   if (!tags) return []
   return tags.split(',').map(t => t.trim()).filter(Boolean).slice(0, 5)
+}
+function readingTime(content) {
+  if (!content) return '1 min'
+  const text = content.replace(/<[^>]*>/g, '').replace(/[#*_`~[\]()>\-!|]/g, '')
+  const cnChars = (text.match(/[\u4e00-\u9fff]/g) || []).length
+  const enWords = text.replace(/[\u4e00-\u9fff]/g, '').split(/\s+/).filter(Boolean).length
+  const mins = Math.max(1, Math.ceil((cnChars / 400) + (enWords / 200)))
+  return mins + ' min'
 }
 function formatDate(d) { return d ? new Date(d).toLocaleDateString('zh-CN') : '' }
 function statusClass(s) { if (s === 'done') return 'status-done'; if (s === 'todo') return 'status-todo'; return 'status-doing' }
