@@ -187,6 +187,7 @@ async function fetchColumnCounts() {
 watch(() => [category.value, route.query.tag], () => { page.value = 1; fetchArticles() })
 onMounted(() => { fetchArticles(); fetchAllTags(); fetchColumnCounts() })
 watch(category, () => { fetchAllTags(); fetchColumnCounts() })
+watch(() => route.fullPath, () => { if (!allColumns[0].count) fetchColumnCounts() })
 </script>
 
 <style scoped>

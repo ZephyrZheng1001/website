@@ -36,15 +36,56 @@
 
       <!-- Articles list -->
       <div v-if="tab==='articles'">
-        <div v-if="articles.length===0" style="text-align:center;color:var(--text-muted);padding:40px;">暂无文章</div>
-        <div v-for="a in articles" :key="a.id" class="card" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <strong>{{ a.title }}</strong>
-            <span style="color:var(--text-muted);font-size:0.8rem;margin-left:12px;">{{ formatDate(a.created_at) }}</span>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <button class="btn btn-outline btn-sm" @click="editArticle(a)">编辑</button>
-            <button class="btn btn-danger btn-sm" @click="deleteArticle(a.id)">删除</button>
+        <!-- Filters -->
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+          <input
+            v-model="articleFilter.search"
+            type="text"
+            placeholder="搜索标题/内容/摘要..."
+            style="flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text);font-size:0.9rem;"
+            @input="applyArticleFilter"
+          />
+          <select
+            v-model="articleFilter.category"
+            style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text);font-size:0.9rem;"
+            @change="applyArticleFilter"
+          >
+            <option value="">全部分类</option>
+            <option value="blog">技术文章</option>
+            <option value="leetcode">算法笔记</option>
+            <option value="projects">项目</option>
+            <option value="study">学习笔记</option>
+            <option value="notes">碎碎念</option>
+          </select>
+          <select
+            v-model="articleFilter.tag"
+            style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text);font-size:0.9rem;"
+            @change="applyArticleFilter"
+          >
+            <option value="">全部标签</option>
+            <option v-for="t in allTagsList" :key="t" :value="t">{{ t }}</option>
+          </select>
+          <span style="font-size:0.85rem;color:var(--text-muted);white-space:nowrap;">
+            共 {{ filteredArticles.length }} 篇
+          </span>
+        </div>
+        <div v-if="filteredArticles.length===0" style="text-align:center;color:var(--text-muted);padding:40px;">暂无文章</div>
+        <div v-for="a in filteredArticles" :key="a.id" class="card" style="margin-bottom:10px;padding:14px 18px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div style="flex:1;min-width:0;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <strong style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ a.title }}</strong>
+                <span class="tag" style="font-size:0.7rem;padding:1px 7px;">{{ catLabel(a.category) }}</span>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                <span v-for="t in parseTagsArr(a.tags)" :key="t" class="tag" style="font-size:0.7rem;padding:1px 7px;cursor:pointer;" @click="articleFilter.tag = t; applyArticleFilter()">{{ t }}</span>
+                <span style="color:var(--text-muted);font-size:0.75rem;margin-left:8px;">{{ formatDate(a.created_at) }}</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-shrink:0;">
+              <button class="btn btn-outline btn-sm" @click="editArticle(a)">编辑</button>
+              <button class="btn btn-danger btn-sm" @click="deleteArticle(a.id)">删除</button>
+            </div>
           </div>
         </div>
       </div>
@@ -226,6 +267,26 @@ const isLoggedIn = computed(() => auth.isLoggedIn)
 
 const tab = ref('articles')
 const articles = ref([])
+const articleFilter = ref({ search: '', category: '', tag: '' })
+const allTagsList = ref([])
+const filteredArticles = computed(() => {
+  let list = articles.value
+  if (articleFilter.value.search) {
+    const q = articleFilter.value.search.toLowerCase()
+    list = list.filter(a =>
+      (a.title || '').toLowerCase().includes(q) ||
+      (a.content || '').toLowerCase().includes(q) ||
+      (a.summary || '').toLowerCase().includes(q)
+    )
+  }
+  if (articleFilter.value.category) {
+    list = list.filter(a => a.category === articleFilter.value.category)
+  }
+  if (articleFilter.value.tag) {
+    list = list.filter(a => parseTagsArr(a.tags).includes(articleFilter.value.tag))
+  }
+  return list
+})
 const editingId = ref(null)
 const toast = ref(null)
 
@@ -270,11 +331,33 @@ async function doLogin() {
 }
 
 // Articles
+function catLabel(c) {
+  const m = { blog: '技术文章', leetcode: '算法笔记', projects: '项目', study: '学习笔记', notes: '碎碎念' }
+  return m[c] || c
+}
+function parseTagsArr(tags) {
+  if (!tags) return []
+  return tags.split(',').map(t => t.trim()).filter(Boolean)
+}
+
 async function fetchArticles() {
   try {
-    const res = await adminAPI.listArticles({ page: 1, limit: 100 })
-    articles.value = res.data.articles || []
+    const res = await adminAPI.listArticles({ page: 1, limit: 200 })
+    articles.value = res.data.articles || res.data || []
+    // Build all tags list
+    const tagSet = new Set()
+    articles.value.forEach(a => parseTagsArr(a.tags).forEach(t => tagSet.add(t)))
+    allTagsList.value = [...tagSet].sort()
+    // Reset filters
+    articleFilter.value = { search: '', category: '', tag: '' }
   } catch (e) { console.error(e) }
+}
+
+function applyArticleFilter() {
+  // Rebuild tag list from all articles (not filtered)
+  const tagSet = new Set()
+  articles.value.forEach(a => parseTagsArr(a.tags).forEach(t => tagSet.add(t)))
+  allTagsList.value = [...tagSet].sort()
 }
 
 function openWrite() {
