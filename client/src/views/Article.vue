@@ -127,13 +127,14 @@ const origCode = marked.Renderer.prototype.code
 marked.Renderer.prototype.code = function(token) {
   const lang = token.lang || ''
   const code = token.text || ''
-    if (lang === 'mermaid') {
-    var escaped = code.trim().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    return '<div class="mermaid" style="text-align:center;margin:1em 0">' + escaped + '</div>';
-  }
-  if (lang && hljs.getLanguage(lang)) {
+    if (lang && hljs.getLanguage(lang)) {
     const result = hljs.highlight(code, { language: lang })
     return '<div class="code-block-wrapper"><span class="code-lang-tag">' + lang + '</span><pre><code class="hljs language-' + lang + '">' + result.value + '</code></pre></div>'
+  }
+  if (lang) {
+    // Unknown language - still show tag, use highlightAuto
+    const result = hljs.highlightAuto(code)
+    return '<div class="code-block-wrapper"><span class="code-lang-tag">' + lang + '</span><pre><code class="hljs">' + result.value + '</code></pre></div>'
   }
   const result = hljs.highlightAuto(code)
   return '<div class="code-block-wrapper"><pre><code class="hljs">' + result.value + '</code></pre></div>'
