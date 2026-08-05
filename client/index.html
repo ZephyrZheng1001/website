@@ -1,35 +1,35 @@
 <!doctype html>
 <html lang="zh-CN">
   <head>
-  <script>
-    (function() {
-      var t = localStorage.getItem('theme');
-      if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', t);
-    })();
-  </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Zephyr - 閮戞櫤姣呯殑涓汉缃戠珯</title>
-    <meta name="description" content="閮戞櫤姣?(Zephyr) 鐨勪釜浜虹綉绔?- 鎶€鏈枃绔犮€佺畻娉曠瑪璁般€侀」鐩鐩樸€佸涔犺褰? />
-    <meta name="keywords" content="Zephyr,閮戞櫤姣?鎶€鏈崥瀹?Go,绠楁硶,椤圭洰,瀛︿範绗旇" />
+    <title>Zephyr - 郑智毅的个人网站</title>
+    <meta name="description" content="郑智毅 (Zephyr) 的个人网站 - 技术文章、算法笔记、项目复盘、学习记录" />
+    <meta name="keywords" content="Zephyr,郑智毅,技术博客,Go,算法,项目,学习笔记" />
     <meta name="author" content="Zephyr Zheng" />
-    <meta property="og:title" content="Zephyr - 閮戞櫤姣呯殑涓汉缃戠珯" />
-    <meta property="og:description" content="鎶€鏈枃绔犮€佺畻娉曠瑪璁般€侀」鐩鐩樸€佸涔犺褰? />
+    <meta property="og:title" content="Zephyr - 郑智毅的个人网站" />
+    <meta property="og:description" content="技术文章、算法笔记、项目复盘、学习记录" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://zephyrzheng.cn" />
-    </head>
+    <script>
+      (function() {
+        var t = localStorage.getItem('theme');
+        if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
+  </head>
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
     <script>
-    document.addEventListener("keydown", function(e) {
-      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
-        e.preventDefault();
-        window.location.hash = "/search";
-      }
-    });
-  </script>
-</body>
+      document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+          e.preventDefault();
+          window.location.hash = '/search';
+        }
+      });
+    </script>
+  </body>
 </html>
