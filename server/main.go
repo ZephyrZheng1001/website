@@ -455,6 +455,7 @@ func initDB() {
 
 func main() {
 	initDB()
+	go loadWords() // preload word cache at startup
 	http.HandleFunc("/api/", router)
 	fmt.Println("Server running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
