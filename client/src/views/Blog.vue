@@ -63,7 +63,7 @@
               <div>
                 <span v-for="tag in parseTags(article.tags)" :key="tag" :class="getTagClass(tag)" style="cursor:pointer;" @click.prevent="goToTag(tag)">{{ cleanTag(tag) }}</span>
               </div>
-              <span style="color:var(--text-muted);font-size:0.78rem;">{{ formatDate(article.created_at) }} · {{ readingTime(article.content || article.summary) }}</span>
+              <span style="color:var(--text-muted);font-size:0.78rem;">{{ formatDate(article.created_at) }} · {{ readingTime(article.summary || article.content || article.title) }}</span>
             </div>
           </router-link>
         </div>
@@ -132,7 +132,7 @@ function parseTags(tags) {
 function readingTime(content) {
   if (!content) return '1 min'
   const text = content.replace(/<[^>]*>/g, '').replace(/[#*_`~\[\]()>\-!|]/g, '')
-  const cnChars = (text.match(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g) || []).length
+  const cnChars = (text.match(/[\u4e00-\u9fff]/g) || []).length
   const enWords = text.replace(/[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff]/g, '').split(/\s+/).filter(Boolean).length
   const mins = Math.ceil((cnChars / 400) + (enWords / 200))
   return (mins || 1) + ' min'

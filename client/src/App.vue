@@ -28,6 +28,7 @@
     <div class="sidebar-overlay" :class="{ show: sidebarOpen }" @click="sidebarOpen = false"></div>
 
     <div class="shell-body">
+      <div class="reading-progress" :style="{ width: progressPercent + '%' }"></div>
       <!-- Desktop Sidebar -->
       <aside class="sidebar" :class="{ open: sidebarOpen }">
         <nav class="sidebar-nav">
@@ -50,7 +51,12 @@
       <!-- Main content -->
       <main class="main-content">
         <router-view />
-      </main>
+      <footer class="site-footer">
+      <p>{{ siteStats.articles }} 篇文章 · 约 {{ siteStats.words }} 字</p>
+      <p><a href="/#/about">关于</a> · <a href="https://github.com/ZephyrZheng1001" target="_blank">GitHub</a> · <a href="/resume.pdf" target="_blank">简历</a></p>
+      <p style="margin-top:6px;font-size:0.7rem;">&copy; 2026 Zephyr · Powered by Go &amp; Vue</p>
+    </footer>
+  </main>
       <button class="back-to-top" :class="{ visible: showBackTop }" @click="scrollToTop" title="返回顶部">↑</button>
     </div>
 
@@ -91,9 +97,28 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useTheme } from './composables/theme'
 const { isDark, toggle: toggleTheme } = useTheme()
+const progressPercent = ref(0)
+function updateProgress() { const h = document.documentElement; const total = h.scrollHeight - h.clientHeight; progressPercent.value = total > 0 ? Math.min(100, Math.round((window.scrollY / total) * 100)) : 0 }
+async function fetchSiteStats() {
+  try {
+    const res = await fetch('/api/articles?limit=200')
+    const data = await res.json()
+    const articles = data.data?.articles || []
+    let totalWords = 0
+    articles.forEach(function(a) {
+      totalWords += (a.summary || '').length + (a.content || '').length
+    })
+    siteStats.value = { articles: articles.length, words: Math.round(totalWords / 2) }
+  } catch(e) {}
+}
+
+onMounted(() => window.addEventListener('scroll', updateProgress, { passive: true }))
+onUnmounted(() => window.removeEventListener('scroll', updateProgress))
+const siteStats = ref({ articles: 0, words: 0 })
 const showBackTop = ref(false)
 function onMainScroll() { showBackTop.value = window.scrollY > 400 }
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }) }
+fetchSiteStats()
 onMounted(() => window.addEventListener('scroll', onMainScroll, { passive: true }))
 onUnmounted(() => window.removeEventListener('scroll', onMainScroll))
 const sidebarOpen = ref(false)
@@ -268,5 +293,12 @@ const sidebarOpen = ref(false)
 .back-to-top:hover { background: #236b60; transform: translateY(-2px); }
 @media (max-width: 768px) {
   .back-to-top { bottom: 76px; right: 16px; width: 38px; height: 38px; font-size: 1rem; }
+}
+
+.reading-progress {
+  position: fixed; top: 48px; left: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent), #5cc4ae);
+  z-index: 250; transition: width 0.15s linear;
+  border-radius: 0 2px 2px 0;
 }
 </style>
