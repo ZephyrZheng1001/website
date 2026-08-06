@@ -50,7 +50,11 @@
 
       <!-- Main content -->
       <main class="main-content">
-        <router-view />
+        <router-view v-slot="{ Component }">
+          <transition name="page-fade" mode="out-in">
+            <component :is="Component" />
+          </transition>
+        </router-view>
       
   </main>
       <button class="back-to-top" :class="{ visible: showBackTop }" @click="scrollToTop" title="返回顶部">↑</button>
@@ -327,5 +331,19 @@ const sidebarOpen = ref(false)
   background: linear-gradient(90deg, var(--accent), #5cc4ae);
   z-index: 250; transition: width 0.15s linear;
   border-radius: 0 2px 2px 0;
+}
+
+/* Page transition */
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.page-fade-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.page-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 </style>

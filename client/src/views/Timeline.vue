@@ -100,51 +100,51 @@ onMounted(async () => {
 }
 .timeline-group {
   position: relative;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 .timeline-marker {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   margin-left: -32px;
 }
 .timeline-year {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--accent);
 }
 .timeline-month {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: var(--text);
   font-weight: 600;
 }
 .timeline-count {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--text-muted);
   background: var(--bg-hover);
-  padding: 1px 10px;
+  padding: 1px 8px;
   border-radius: 10px;
 }
 .timeline-cards {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 .timeline-card {
-  padding: 14px 18px !important;
+  padding: 12px 16px !important;
   display: block;
 }
 .timeline-card:hover {
   text-decoration: none;
-  transform: translateY(-1px);
+  
 }
 .timeline-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
-  margin-top: 6px;
+  margin-top: 5px;
 }
 .dot-blog { background: #2d8a7b; }
 .dot-leetcode { background: #e65100; }
@@ -153,8 +153,14 @@ onMounted(async () => {
 .dot-notes { background: #d4a574; }
 
 @media (max-width: 768px) {
-  .timeline { padding-left: 14px; }
-  .timeline-marker { margin-left: -26px; }
-  .timeline-card { padding: 12px 14px !important; }
+  .timeline { padding-left: 12px; }
+  .timeline-group { margin-bottom: 18px; }
+  .timeline-marker { margin-left: -24px; }
+  .timeline-year { font-size: 1rem; }
+  .timeline-month { font-size: 0.8rem; }
+  .timeline-card { padding: 10px 12px !important; }
+  .timeline-card strong { font-size: 0.85rem !important; }
+  .timeline-card p { font-size: 0.73rem !important; }
+  .timeline-card .tag { font-size: 0.65rem !important; }
 }
 </style>

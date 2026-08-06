@@ -1,70 +1,44 @@
-﻿<template>
+<template>
   <div style="padding-top:48px;padding-bottom:32px;max-width:720px;margin:0 auto;padding-left:24px;padding-right:24px;">
 
-    <section style="margin-bottom:56px;">
-      <h1 style="font-size:2.4rem;font-weight:800;letter-spacing:-0.5px;line-height:1.3;margin-bottom:18px;">
-        你好，我是Zephyr！
+    <section style="margin-bottom:40px;">
+      <h1 class="hero-title">
+        <span class="typed-text">{{ typedText }}</span>
       </h1>
       <p style="font-size:1.08rem;color:var(--text-muted);max-width:560px;line-height:1.8;">
         欢迎来到我的主页，我是郑智毅，就读于同济大学计算机专业。在这里你可以了解我所学的知识，也可以<a href="/#/about" style="color:var(--accent);text-decoration:underline;">了解我</a>
       </p>
     </section>
 
-    <section style="display:flex;gap:48px;padding:18px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:44px;font-size:0.88rem;color:var(--text-muted);">
+    <section style="display:flex;gap:32px;padding:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:24px;font-size:0.84rem;color:var(--text-muted);">
       <div><strong style="color:var(--accent);">{{ stats.articles }}</strong> 篇文章</div>
       <div><strong style="color:var(--accent);">{{ stats.visitors }}</strong> 位访客</div>
     </section>
 
-    <!-- Daily Word -->
-    <section v-if="dailyWord" style="margin-bottom:40px;">
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:22px 28px;box-shadow:var(--shadow);">
-        <div style="display:flex;align-items:flex-start;gap:14px;">
-          <span style="font-size:1.6rem;flex-shrink:0;">📖</span>
-          <div style="flex:1;min-width:0;">
-            <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:4px;">
-              <span style="font-size:0.72rem;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:1px;">每日一词</span>
-              <span style="font-size:0.68rem;color:var(--text-muted);">每天一个后端术语，积少成多</span>
-            </div>
-            <div style="font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:2px;">{{ dailyWord.word }}</div>
-            <div style="font-size:0.88rem;color:var(--text-muted);margin-bottom:6px;">{{ dailyWord.cn }}</div>
-            <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.6;">{{ dailyWord.desc }}</p>
-          </div>
+    <section style="margin-bottom:28px;">
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px 20px;box-shadow:var(--shadow);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <span style="font-weight:600;font-size:0.78rem;color:var(--text);">{{ currentYear }} 年度进度</span>
+          <span style="font-size:0.7rem;color:var(--text-muted);">{{ daysElapsed }}/{{ totalDays }} 天 · {{ yearPercent }}% · {{ currentTime }}</span>
+        </div>
+        <div style="height:5px;background:var(--bg-hover);border-radius:5px;overflow:hidden;margin-bottom:10px;">
+          <div :style="{width:yearPercent+'%'}" style="height:100%;border-radius:5px;background:linear-gradient(90deg,#2d8a7b,#5cc4ae);transition:width 1s ease;"></div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <a v-if="lc.totalSolved" href="https://leetcode.cn/u/amazing-joliotj1h" target="_blank" style="font-weight:600;font-size:0.78rem;color:var(--text);text-decoration:none;">
+            LeetCode
+            <span style="font-weight:400;color:var(--text-muted);font-size:0.72rem;">{{ lc.totalSolved }}/{{ lc.totalQuestions }} ↗</span>
+          </a>
+          <span v-else class="lc-skeleton" style="width:120px;height:14px;border-radius:3px;display:inline-block;"></span>
+          <span v-if="lc.totalSolved" style="font-size:0.7rem;color:var(--text-muted);font-weight:500;">{{ Math.round(lc.totalSolved / lc.totalQuestions * 100) }}%</span>
+        </div>
+        <div v-if="lc.totalSolved" style="height:5px;background:var(--bg-hover);border-radius:5px;overflow:hidden;margin-top:6px;">
+          <div :style="{width: lc.totalSolved / lc.totalQuestions * 100 + '%'}" style="height:100%;border-radius:5px;background:linear-gradient(90deg,#e65100,#ff9800);transition:width 0.6s ease;"></div>
         </div>
       </div>
     </section>
 
-
-    <section style="margin-bottom:40px;">
-      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:22px 28px;box-shadow:var(--shadow);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <span style="font-weight:600;font-size:0.95rem;color:var(--text);">{{ currentYear }} 年度进度 · 当前时间 {{ currentTime }}</span>
-          <span style="font-size:0.9rem;font-weight:700;color:var(--accent);">{{ yearPercent }}%</span>
-        </div>
-        <div style="position:relative;height:10px;background:var(--bg-hover);border-radius:10px;overflow:hidden;">
-          <div :style="{width:yearPercent+'%'}" style="height:100%;border-radius:10px;background:linear-gradient(90deg,#2d8a7b,#5cc4ae);transition:width 1s ease;"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:0.78rem;color:var(--text-muted);">
-          <span>1月1日</span>
-          <span>已过 {{ daysElapsed }} 天 / 全年 {{ totalDays }} 天</span>
-          <span>12月31日</span>
-        </div>
-      </div>
-    </section>
-
-    <section>
-      <div class="nav-grid">
-        <router-link v-for="col in columns" :key="col.key" :to="col.link" class="card nav-card">
-          <div class="nav-card-icon">{{ col.icon }}</div>
-          <div>
-            <h3>{{ col.title }}</h3>
-            <p>{{ col.desc }}</p>
-          </div>
-          <span class="nav-card-arrow">→</span>
-        </router-link>
-      </div>
-    </section>
-
-    <section v-if="timelineItems.length" style="margin-top:52px;">
+    <section v-if="timelineItems.length" style="margin-top:44px;">
       <h3 style="font-size:1rem;color:var(--text-muted);font-weight:500;margin-bottom:20px;">最近更新</h3>
       <div class="home-timeline">
         <div v-for="item in timelineItems" :key="item.key" class="home-tl-group">
@@ -79,15 +53,12 @@
               :to="articleLink(a)"
               class="card home-tl-card"
             >
-              <div style="display:flex;align-items:flex-start;gap:10px;">
+              <div style="display:flex;align-items:center;gap:8px;">
                 <span class="home-tl-dot" :class="dotClass(a.category)"></span>
-                <div style="flex:1;min-width:0;">
-                  <strong style="font-size:0.92rem;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ a.is_pinned ? '📌 ' : '' }}{{ a.title }}</strong>
-                  <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap;">
-                    <span class="tag" style="font-size:0.7rem;padding:1px 7px;">{{ catLabel(a.category) }}</span>
-                    <span v-for="t in (a.tags||'').split(',').map(s=>s.trim()).filter(Boolean).slice(0,3)" :key="t" class="tag" style="font-size:0.68rem;padding:1px 6px;margin:0;">{{ t }}</span>
-                    <span style="font-size:0.72rem;color:var(--text-muted);margin-left:auto;">{{ dayLabel(a.created_at) }}</span>
-                  </div>
+                <strong class="home-tl-title">{{ a.is_pinned ? '\U0001f4cc ' : '' }}{{ a.title }}</strong>
+                <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:auto;">
+                  <span class="tag" style="font-size:0.68rem;padding:1px 6px;">{{ catLabel(a.category) }}</span>
+                  <span style="font-size:0.7rem;color:var(--text-muted);white-space:nowrap;">{{ dayLabel(a.created_at) }}</span>
                 </div>
               </div>
             </router-link>
@@ -97,20 +68,14 @@
     </section>
   </div>
 </template>
+
 <script setup>
 import { ref, onMounted } from 'vue'
 import { articleAPI } from '../api'
 
-const columns = [
-  { key: 'blog', title: '技术文章', desc: '技术分享与教程', icon: '📝', link: '/blog' },
-  { key: 'leetcode', title: '算法笔记', desc: '算法题解笔记', icon: '💡', link: '/leetcode' },
-  { key: 'projects', title: '项目', desc: '项目复盘方案', icon: '🚀', link: '/projects' },
-  { key: 'notes', title: '碎碎念', desc: '日常随想记录', icon: '💬', link: '/notes' },
-]
-
 const timelineItems = ref([])
 const stats = ref({ articles: 0, visitors: 0 })
-const dailyWord = ref(window.__DAILY_WORD__ || null)
+const lc = ref({ totalSolved: 0, totalQuestions: 0, ranking: 0 })
 const todayDate = ref('')
 
 const yp = calcYearProgress()
@@ -119,6 +84,23 @@ const daysElapsed = ref(yp.daysElapsed)
 const totalDays = ref(yp.totalDays)
 const yearPercent = ref(yp.percent)
 const currentTime = ref('')
+
+const fullText = '你好，我是Zephyr！'
+const typedText = ref('')
+let typeTimer = null
+function startTyping() {
+  let i = 0
+  typedText.value = ''
+  typeTimer = setInterval(() => {
+    if (i <= fullText.length) {
+      typedText.value = fullText.slice(0, i)
+      i++
+    } else {
+      clearInterval(typeTimer)
+    }
+  }, 120)
+}
+startTyping()
 
 function catLabel(c) { const m = { blog: '技术文章', leetcode: '算法笔记', projects: '项目', study: '学习笔记', notes: '碎碎念' }; return m[c] || c }
 function dotClass(c) { const m = { blog: 'dot-blog', leetcode: 'dot-leetcode', projects: 'dot-projects', study: 'dot-study', notes: 'dot-notes' }; return m[c] || 'dot-blog' }
@@ -145,23 +127,17 @@ onMounted(async () => {
     const res = await articleAPI.list({ limit: 200 })
     const all = res.data.articles || []
     stats.value.articles = res.data.total || all.length
-    // Fetch visitor count
     try {
       const uvRes = await fetch('/api/visitors/count')
       const uvData = await uvRes.json()
       stats.value.visitors = uvData.data?.visitors || uvData.visitors || 0
     } catch(e) {}
-    // Daily word from build-time injection, with API fallback
-    if (window.__DAILY_WORD__) {
-      dailyWord.value = window.__DAILY_WORD__
-    } else {
-      try {
-        var dwRes = await fetch('/api/daily-word')
-        var dwData = await dwRes.json()
-        if (dwData.success) dailyWord.value = dwData.data
-      } catch(e) {}
-    }
-    var d = new Date()
+    try {
+      const lcRes = await fetch('/api/leetcode/stats')
+      const lcData = await lcRes.json()
+      if (lcData.success) lc.value = lcData.data
+    } catch(e) {}
+    const d = new Date()
     todayDate.value = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0')
 
     const groups = {}
@@ -178,34 +154,55 @@ onMounted(async () => {
   } catch (e) { console.error(e) }
 })
 </script>
+
 <style scoped>
-.nav-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-.nav-card { display: flex; align-items: center; gap: 12px; padding: 18px; cursor: pointer; }
-.nav-card:hover { text-decoration: none; }
-.nav-card-icon { font-size: 1.3rem; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: var(--accent-light); border-radius: 10px; flex-shrink: 0; }
-.nav-card h3 { font-size: 0.9rem; color: var(--text); margin-bottom: 2px; }
-.nav-card p { font-size: 0.78rem; color: var(--text-muted); }
-.nav-card-arrow { margin-left: auto; color: var(--text-muted); font-size: 0.9rem; transition: transform 0.2s; }
-.nav-card:hover .nav-card-arrow { transform: translateX(3px); color: var(--accent); }
+.hero-title {
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.3;
+  margin-bottom: 18px;
+}
+.typed-cursor {
+  color: var(--accent);
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.lc-skeleton {
+  background: var(--bg-hover);
+  border-radius: 3px;
+  animation: lc-shimmer 1.5s ease-in-out infinite;
+}
+@keyframes lc-shimmer {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
 .home-timeline { position: relative; padding-left: 16px; border-left: 2px solid var(--border); }
-.home-tl-group { margin-bottom: 20px; }
-.home-tl-marker { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; margin-left: -26px; }
+.home-tl-group { margin-bottom: 16px; }
+.home-tl-marker { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; margin-left: -26px; }
 .home-tl-year { font-size: 1rem; font-weight: 700; color: var(--accent); }
 .home-tl-month { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
-.home-tl-cards { display: flex; flex-direction: column; gap: 6px; }
-.home-tl-card { padding: 12px 16px !important; display: block; }
-.home-tl-card:hover { text-decoration: none; transform: translateY(-1px); }
-.home-tl-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+.home-tl-cards { display: flex; flex-direction: column; gap: 4px; }
+.home-tl-card { padding: 10px 14px !important; display: block; }
+.home-tl-card:hover { text-decoration: none; }
+.home-tl-title { font-size: 0.88rem; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; display: block; }
+.home-tl-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .dot-blog { background: #2d8a7b; }
 .dot-leetcode { background: #e65100; }
 .dot-projects { background: #6c3fb5; }
 .dot-study { background: #2d7dd2; }
 .dot-notes { background: #d4a574; }
 @media (max-width: 768px) {
-  .nav-grid { grid-template-columns: 1fr; }
-  .home-timeline { padding-left: 12px; }
-  .home-tl-marker { margin-left: -22px; }
+  .hero-title { font-size: 1.8rem; }
+  .home-timeline { padding-left: 10px; }
+  .home-tl-group { margin-bottom: 12px; }
+  .home-tl-marker { margin-left: -20px; }
+  .home-tl-year { font-size: 0.9rem; }
+  .home-tl-month { font-size: 0.72rem; }
+  .home-tl-card { padding: 8px 10px !important; }
+  .home-tl-title { font-size: 0.82rem; }
 }
-
-.nav-card-count { font-size: 0.72rem; color: var(--text-muted); margin-left: 8px; white-space: nowrap; }
 </style>

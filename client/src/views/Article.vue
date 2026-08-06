@@ -299,9 +299,15 @@ function injectCopyButtons() {
     btn.onclick = function() {
       var code = this.parentNode.querySelector('code')
       var txt = code ? code.textContent : this.parentNode.textContent || ''
-      navigator.clipboard.writeText(txt).then((function(btn) {
-        return function() { btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>'; setTimeout(function() { btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>' }, 2000) }
-      })(this))
+      var self = this
+      navigator.clipboard.writeText(txt).then(function() {
+        self.classList.add('copied')
+        self.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>'
+        setTimeout(function() {
+          self.classList.remove('copied')
+          self.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>'
+        }, 2000)
+      })
     }
     w.appendChild(btn)
   }
@@ -458,6 +464,7 @@ watch(() => route.params.id, async (newId) => {
 }
 [data-theme="dark"] :deep(.code-block-wrapper) .copy-btn { background: var(--bg-card); border-color: var(--border); }
 [data-theme="dark"] :deep(.copy-btn:hover) { background: rgba(77,184,165,0.15); color: var(--accent); }
+  [data-theme="dark"] :deep(.copy-btn.copied) { background: #1a3a1a; color: #5cbb5c; border-color: #5cbb5c; }
 
 /* Prev/Next Nav */
 .prev-next-nav {

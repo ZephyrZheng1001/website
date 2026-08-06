@@ -43,12 +43,10 @@
             type="text"
             placeholder="搜索标题/内容/摘要..."
             style="flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text);font-size:0.9rem;"
-            @input="applyArticleFilter"
           />
           <select
             v-model="articleFilter.category"
             style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text);font-size:0.9rem;"
-            @change="applyArticleFilter"
           >
             <option value="">全部分类</option>
             <option value="blog">技术文章</option>
@@ -57,14 +55,41 @@
             <option value="study">学习笔记</option>
             <option value="notes">碎碎念</option>
           </select>
-          <select
-            v-model="articleFilter.tag"
+                    <select
+            v-model="timePrecision"
             style="padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text);font-size:0.9rem;"
-            @change="applyArticleFilter"
+            @change="onTimeFilterChange"
           >
-            <option value="">全部标签</option>
-            <option v-for="t in allTagsList" :key="t" :value="t">{{ t }}</option>
+            <option value="">全部时间</option>
+            <option value="year">按年份</option>
+            <option value="month">按月份</option>
+            <option value="date">按日期</option>
           </select>
+          <input
+            v-if="timePrecision==='year'"
+            v-model="timeValue"
+            type="number"
+            placeholder="年份，如 2026"
+            min="2000"
+            max="2100"
+            style="width:120px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text);font-size:0.9rem;"
+            @input="onTimeFilterChange"
+          />
+          <input
+            v-if="timePrecision==='month'"
+            v-model="timeValue"
+            type="month"
+            style="width:160px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text);font-size:0.9rem;"
+            @change="onTimeFilterChange"
+          />
+          <input
+            v-if="timePrecision==='date'"
+            v-model="timeValue"
+            type="date"
+            style="width:160px;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--bg-card);color:var(--text);font-size:0.9rem;"
+            @change="onTimeFilterChange"
+          />
+
           <span style="font-size:0.85rem;color:var(--text-muted);white-space:nowrap;">
             共 {{ filteredArticles.length }} 篇
           </span>
@@ -78,7 +103,7 @@
                 <span class="tag" style="font-size:0.7rem;padding:1px 7px;">{{ catLabel(a.category) }}</span>
               </div>
               <div style="display:flex;flex-wrap:wrap;gap:4px;">
-                <span v-for="t in parseTagsArr(a.tags)" :key="t" class="tag" style="font-size:0.7rem;padding:1px 7px;cursor:pointer;" @click="articleFilter.tag = t; applyArticleFilter()">{{ t }}</span>
+                <span v-for="t in parseTagsArr(a.tags)" :key="t" class="tag" style="font-size:0.7rem;padding:1px 7px;">{{ t }}</span>
                 <span style="color:var(--text-muted);font-size:0.75rem;margin-left:8px;">{{ formatDate(a.created_at) }}</span>
               </div>
             </div>
@@ -274,8 +299,9 @@ const isLoggedIn = computed(() => auth.isLoggedIn)
 
 const tab = ref('articles')
 const articles = ref([])
-const articleFilter = ref({ search: '', category: '', tag: '' })
-const allTagsList = ref([])
+const articleFilter = ref({ search: '', category: '' })
+const timePrecision = ref('')
+const timeValue = ref('')
 const filteredArticles = computed(() => {
   let list = articles.value
   if (articleFilter.value.search) {
@@ -288,9 +314,6 @@ const filteredArticles = computed(() => {
   }
   if (articleFilter.value.category) {
     list = list.filter(a => a.category === articleFilter.value.category)
-  }
-  if (articleFilter.value.tag) {
-    list = list.filter(a => parseTagsArr(a.tags).includes(articleFilter.value.tag))
   }
   return list
 })
@@ -347,24 +370,43 @@ function parseTagsArr(tags) {
   return tags.split(',').map(t => t.trim()).filter(Boolean)
 }
 
-async function fetchArticles() {
+async function fetchArticles(params) {
   try {
-    const res = await adminAPI.listArticles({ page: 1, limit: 200 })
+    const queryParams = { page: 1, limit: 200 }
+    if (params) Object.assign(queryParams, params)
+    const res = await adminAPI.listArticles(queryParams)
     articles.value = res.data.articles || res.data || []
-    // Build all tags list
-    const tagSet = new Set()
-    articles.value.forEach(a => parseTagsArr(a.tags).forEach(t => tagSet.add(t)))
-    allTagsList.value = [...tagSet].sort()
-    // Reset filters
-    articleFilter.value = { search: '', category: '', tag: '' }
+    // Only reset when no params (full reload, e.g. after save/delete)
+    if (!params) {
+      articleFilter.value = { search: '', category: '' }
+      timePrecision.value = ''
+      timeValue.value = ''
+    }
   } catch (e) { console.error(e) }
 }
 
-function applyArticleFilter() {
-  // Rebuild tag list from all articles (not filtered)
-  const tagSet = new Set()
-  articles.value.forEach(a => parseTagsArr(a.tags).forEach(t => tagSet.add(t)))
-  allTagsList.value = [...tagSet].sort()
+function onTimeFilterChange() {
+  // Only fetch when precision is cleared (back to all) or value is filled
+  if (timePrecision.value === '') {
+    // Back to "????" - fetch all
+    timeValue.value = ''
+    fetchArticles()
+    return
+  }
+  if (!timeValue.value) {
+    // Just changed precision, haven't picked a value yet - do nothing
+    return
+  }
+  // Precision + value both set - fetch with filter
+  const params = { page: 1, limit: 200 }
+  if (timePrecision.value === 'year') {
+    params.year = timeValue.value
+  } else if (timePrecision.value === 'month') {
+    params.month = timeValue.value
+  } else if (timePrecision.value === 'date') {
+    params.date = timeValue.value
+  }
+  fetchArticles(params)
 }
 
 function openWrite() {

@@ -1,6 +1,7 @@
 ﻿package main
 
 import (
+	"bytes"
 	"database/sql"
 	"hash/fnv"
 	"encoding/json"
@@ -242,6 +243,102 @@ func adminDeleteArticle(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, 200, APIResponse{Success: true})
 }
 
+// ====================== LeetCode Proxy ======================
+
+type LeetCodeStats struct {
+	Username         string   `json:"username"`
+	TotalSolved      int      `json:"totalSolved"`
+	TotalQues        int      `json:"totalQuestions"`
+	Ranking          int      `json:"ranking"`
+	RealName         string   `json:"realName"`
+	Avatar           string   `json:"avatar"`
+	School           string   `json:"school"`
+	Country          string   `json:"country"`
+	Birthday         string   `json:"birthday"`
+	Reputation       int      `json:"reputation"`
+	SkillTags        []string `json:"skillTags"`
+	AcSubmissions    int      `json:"acSubmissions"`
+	TotalSubmissions int      `json:"totalSubmissions"`
+}
+
+func leetcodeStats(w http.ResponseWriter, r *http.Request) {
+	username := r.URL.Query().Get("username")
+	if username == "" {
+		username = "amazing-joliotj1h"
+	}
+
+	query := fmt.Sprintf(`{"query":"query getUserProfile($username: String!) { userProfilePublicProfile(userSlug: $username) { profile { ranking { currentLocalRanking currentGlobalRanking } userAvatar realName aboutMe company school skillTags reputation websites countryName birthday } submissionProgress { acTotal questionTotal acSubmissions totalSubmissions } } }","variables":{"username":"%s"}}`, username)
+
+	req, err := http.NewRequest("POST", "https://leetcode.cn/graphql", bytes.NewBuffer([]byte(query)))
+	if err != nil {
+		writeJSON(w, 500, APIResponse{Success: false, Message: "Failed to create request"})
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Referer", "https://leetcode.cn/")
+	req.Header.Set("User-Agent", "Mozilla/5.0")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		writeJSON(w, 500, APIResponse{Success: false, Message: "Failed to fetch LeetCode data"})
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		writeJSON(w, 500, APIResponse{Success: false, Message: "Failed to read response"})
+		return
+	}
+
+	var result struct {
+		Data struct {
+			UserProfilePublicProfile struct {
+				Profile struct {
+					Ranking struct {
+						CurrentLocalRanking  int `json:"currentLocalRanking"`
+						CurrentGlobalRanking int `json:"currentGlobalRanking"`
+					} `json:"ranking"`
+					UserAvatar  string   `json:"userAvatar"`
+					RealName    string   `json:"realName"`
+					School      string   `json:"school"`
+					CountryName string   `json:"countryName"`
+					Birthday    string   `json:"birthday"`
+					Reputation  int      `json:"reputation"`
+					SkillTags   []string `json:"skillTags"`
+				} `json:"profile"`
+				SubmissionProgress struct {
+					AcTotal          int `json:"acTotal"`
+					QuestionTotal    int `json:"questionTotal"`
+					AcSubmissions    int `json:"acSubmissions"`
+					TotalSubmissions int `json:"totalSubmissions"`
+				} `json:"submissionProgress"`
+			} `json:"userProfilePublicProfile"`
+		} `json:"data"`
+	}
+
+	json.Unmarshal(body, &result)
+
+	stats := LeetCodeStats{
+		Username:         username,
+		TotalSolved:      result.Data.UserProfilePublicProfile.SubmissionProgress.AcTotal,
+		TotalQues:        result.Data.UserProfilePublicProfile.SubmissionProgress.QuestionTotal,
+		Ranking:          result.Data.UserProfilePublicProfile.Profile.Ranking.CurrentLocalRanking,
+		RealName:         result.Data.UserProfilePublicProfile.Profile.RealName,
+		Avatar:           result.Data.UserProfilePublicProfile.Profile.UserAvatar,
+		School:           result.Data.UserProfilePublicProfile.Profile.School,
+		Country:          result.Data.UserProfilePublicProfile.Profile.CountryName,
+		Birthday:         result.Data.UserProfilePublicProfile.Profile.Birthday,
+		Reputation:       result.Data.UserProfilePublicProfile.Profile.Reputation,
+		SkillTags:        result.Data.UserProfilePublicProfile.Profile.SkillTags,
+		AcSubmissions:    result.Data.UserProfilePublicProfile.SubmissionProgress.AcSubmissions,
+		TotalSubmissions: result.Data.UserProfilePublicProfile.SubmissionProgress.TotalSubmissions,
+	}
+
+	writeJSON(w, 200, APIResponse{Success: true, Data: stats})
+}
+
 // ====================== Router ======================
 
 
@@ -366,6 +463,7 @@ func router(w http.ResponseWriter, r *http.Request) {
 	if path == "/api/visitor" && r.Method == "POST" { recordVisitor(w, r); return }
 	if path == "/api/visitors/count" && r.Method == "GET" { getVisitorCount(w, r); return }
 	if path == "/api/search" && r.Method == "GET" { searchArticles(w, r); return }
+	if path == "/api/leetcode/stats" && r.Method == "GET" { leetcodeStats(w, r); return }
 	if path == "/api/articles" && r.Method == "GET" { getArticles(w, r); return }
 	if strings.HasPrefix(path, "/api/articles/") && r.Method == "GET" { getArticle(w, r); return }
 	if path == "/api/study-categories" && r.Method == "GET" { getStudyCategories(w, r); return }

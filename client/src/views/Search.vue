@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div style="padding-top:24px;padding-bottom:60px;max-width:720px;margin:0 auto;padding-left:24px;padding-right:24px;">
     <h1 style="font-size:2rem;margin-bottom:24px;">🔍 搜索</h1>
     <div style="display:flex;gap:10px;margin-bottom:32px;">
@@ -94,3 +94,93 @@ async function search() {
   }
 }
 </script>
+
+<style scoped>
+.search-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+}
+.search-card:hover { text-decoration: none; }
+.search-card-icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+.search-card-body { flex: 1; min-width: 0; }
+.search-card-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 3px;
+}
+.search-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+.search-card-title :deep(mark) {
+  background: #fff3cd;
+  color: inherit;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+[data-theme="dark"] .search-card-title :deep(mark) { background: #5a4a10; }
+.search-card-date {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.search-card-bottom {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.search-card-summary {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+.search-card-summary :deep(mark) {
+  background: #fff3cd;
+  color: inherit;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+[data-theme="dark"] .search-card-summary :deep(mark) { background: #5a4a10; }
+.search-card-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.search-card-cat {
+  font-size: 0.7rem;
+  color: var(--accent);
+  background: var(--accent-light);
+  padding: 1px 7px;
+  border-radius: 8px;
+}
+.search-card-tag {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .search-card { padding: 10px 12px; gap: 8px; }
+  .search-card-title { font-size: 0.85rem; }
+  .search-card-summary { font-size: 0.73rem; }
+  .search-card-date { font-size: 0.68rem; }
+  .search-card-cat, .search-card-tag { font-size: 0.65rem; }
+}
+</style>

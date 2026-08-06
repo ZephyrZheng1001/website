@@ -52,18 +52,17 @@
             v-for="article in articles"
             :key="article.id"
             :to="`/${routeName}/${article.id}`"
-            class="card"
-            style="display:block;"
+            class="card article-card"
           >
-            <h2 style="font-size:1.2rem;margin-bottom:8px;color:var(--text);">{{ article.is_pinned ? '📌 ' : '' }}{{ article.title }}</h2>
-            <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:10px;line-height:1.5;">
-              {{ article.summary || article.content?.slice(0, 150) + '...' }}
-            </p>
-            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-              <div>
-                <span v-for="tag in parseTags(article.tags)" :key="tag" :class="getTagClass(tag)" style="cursor:pointer;" @click.prevent="goToTag(tag)">{{ cleanTag(tag) }}</span>
+            <div class="article-card-top">
+              <h2 class="article-card-title">{{ article.is_pinned ? '📌 ' : '' }}{{ article.title }}</h2>
+              <div class="article-card-tags">
+                <span v-for="tag in parseTags(article.tags)" :key="tag" :class="[getTagClass(tag), { 'tag-match': activeTag && tag === activeTag }]" @click.prevent="goToTag(tag)">{{ cleanTag(tag) }}</span>
               </div>
-              <span style="color:var(--text-muted);font-size:0.78rem;">{{ formatDate(article.created_at) }} · {{ readingTime(article.content || article.summary || article.title) }}</span>
+              <span class="article-card-meta">{{ formatDate(article.created_at) }} · {{ readingTime(article.content || article.summary || article.title) }}</span>
+            </div>
+            <div class="article-card-expand">
+              <p class="article-card-summary">{{ article.summary || article.content?.slice(0, 150) + '...' }}</p>
             </div>
           </router-link>
         </div>
@@ -260,11 +259,92 @@ fetchColumnCounts()
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* ---- Compact article card ---- */
+.article-card {
+  display: block;
+  padding: 10px 16px;
+  cursor: pointer;
+  overflow: hidden;
+}
+.article-card:hover {
+  text-decoration: none;
+}
+.article-card-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.article-card-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+.article-card-tags {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.article-card-tags .tag,
+.article-card-tags .tag-difficulty {
+  font-size: 0.65rem !important;
+  padding: 1px 5px !important;
+  margin: 0 !important;
+}
+.article-card-meta {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.article-card-expand {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease, margin-top 0.3s ease;
+  margin-top: 0;
+}
+.article-card:hover .article-card-expand {
+  grid-template-rows: 1fr;
+  margin-top: 6px;
+}
+.article-card-expand > .article-card-summary {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.tag-match {
+  background: var(--accent) !important;
+  color: #fff !important;
+}
+[data-theme="dark"] .tag-match {
+  background: var(--accent) !important;
+  color: #111518 !important;
+}
+
 @media (max-width: 768px) {
   .blog-layout { flex-direction: column; }
   .blog-sidebar { width: 100%; }
-  .sidebar-nav { flex-direction: row; flex-wrap: wrap; gap: 4px; margin-bottom: 20px; }
-  .sidebar-link { padding: 6px 12px; font-size: 0.82rem; }
+  .sidebar-nav { flex-direction: row; flex-wrap: wrap; gap: 4px; margin-bottom: 16px; }
+  .sidebar-link { padding: 5px 10px; font-size: 0.78rem; }
   .sidebar-count { display: none; }
+
+  .article-card { padding: 10px 12px; }
+  .article-card-title { font-size: 0.84rem; }
+  .article-card-summary { font-size: 0.73rem; }
+  .article-card-meta { font-size: 0.68rem; }
+  .article-card-tags .tag,
+  .article-card-tags .tag-difficulty {
+    font-size: 0.62rem !important;
+    padding: 0 5px !important;
+  }
 }
 </style>

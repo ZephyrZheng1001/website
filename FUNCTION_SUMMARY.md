@@ -287,3 +287,56 @@ ssh admin@47.116.136.145 "sudo systemctl stop zephyr-api && sudo cp ~/server_lin
 - Cleaned 15 temp/dev scripts from repo root
 - Fixed `inject_word.py` to deduplicate `__DAILY_WORD__` blocks in index.html (was accumulating 6 blocks)
 - Cleaned server junk from `/opt/zephyr/server/`: old `server` binary, `go.mod`, `go.sum`, `main.go`, `app.log`
+
+---
+
+## 2026-08-06 Session: Admin panel upgrade - Time filter replaces tag filter
+
+### New Feature: Time-based article filtering in Admin
+- **Precision levels**: Year, Month, Date (or All Time = no filter)
+- **Implementation**: Precision dropdown + dynamic value input (changes based on selected precision)
+- **Backend**: `GET /api/admin/articles?year=2026` / `?month=2026-08` / `?date=2026-08-01`
+- **SQL**: `YEAR(created_at)`, `DATE_FORMAT(created_at, '%Y-%m')`, `DATE(created_at)`
+
+### Removed: Tag filter
+- Tag filter dropdown removed from admin article list
+- `allTagsList` ref, `applyArticleFilter()` function removed
+- Tags still rendered on article cards (display-only, no click-to-filter)
+
+### Technical notes
+- Python `stdin` pipeline breaks UTF-8 Chinese under PowerShell; use disk files with hex escapes
+- When modifying Vue SFC files, watch for indentation differences causing string replacement to fail
+- `fetchArticles()` reset logic: only clear filter state on full reload (create/delete), not on filtered queries
+
+
+---
+
+## 2026-08-07 Update: Homepage Redesign & LeetCode Integration
+
+### Homepage Layout (New)
+1. Hero title with typewriter animation
+2. Stats line (articles + visitors)
+3. Combined card: Year progress (green bar) + LeetCode progress (orange bar)
+4. Recent updates timeline
+
+### LeetCode Stats API
+- Endpoint: GET /api/leetcode/stats
+- Proxies leetcode.cn/graphql (public, no auth)
+- Fields: totalSolved, totalQuestions, realName, avatar, skillTags, reputation, acSubmissions, totalSubmissions
+- Cached only at request time (stateless proxy)
+
+### Card System Redesign
+- Default: compact single-row (title + tags + date)
+- Hover: summary expands smoothly, left accent border slides in, shadow diffuses
+- Tags: globally shrunk (desktop 0.72rem, mobile 0.62rem)
+- Tag match: filtered tags highlight in solid accent color on cards
+
+### UI Effects
+- Page transition: router-view fade+slide (opacity + translateY)
+- Copy button: pop animation (scale bounce) + green checkmark, auto-restore 2s
+- Skeleton loading: shimmer animation for async data (LeetCode card)
+
+### Performance
+- inject_word.py removed from build pipeline
+- Home.css reduced from 4.49kB to 2.03kB
+- Navigation cards removed (redundant with sidebar)

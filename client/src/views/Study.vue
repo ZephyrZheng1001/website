@@ -42,20 +42,20 @@
         </div>
 
         <div v-else style="display:flex;flex-direction:column;gap:16px;">
-          <router-link v-for="article in filteredArticles" :key="article.id" :to="'/study/' + article.id" class="card study-card" style="display:flex;align-items:center;gap:16px;padding:18px 22px;">
+          <router-link v-for="article in filteredArticles" :key="article.id" :to="'/study/' + article.id" class="card study-card">
             <div class="study-status-dot" :class="statusClass(article.study_status)" :title="statusLabel(article.study_status)"></div>
-            <div style="flex:1;min-width:0;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                <span v-if="article.is_pinned" style="font-size:0.75rem;" title="置顶">📌</span>
-                <span style="font-size:0.95rem;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ article.is_pinned ? '📌 ' : '' }}{{ article.title }}</span>
+            <div class="study-card-body">
+              <div class="study-card-top">
+                <span v-if="article.is_pinned" class="study-pin">📌</span>
+                <span class="study-card-title">{{ article.is_pinned ? '📌 ' : '' }}{{ article.title }}</span>
+                <span class="study-card-meta">{{ formatDate(article.created_at) }} · {{ readingTime(article.content || article.summary || article.title) }}</span>
               </div>
-              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                <span v-if="article.subcategory" style="font-size:0.75rem;color:var(--accent);background:var(--accent-light);padding:1px 8px;border-radius:8px;">{{ subNames[article.subcategory] || article.subcategory }}</span>
-                <span v-for="tag in parseTags(article.tags)" :key="tag" style="font-size:0.75rem;color:var(--text-muted);">#{{ tag }}</span>
-                <span style="font-size:0.75rem;color:var(--text-muted);margin-left:auto;">{{ formatDate(article.created_at) }} · {{ readingTime(article.content || article.summary || article.title) }}</span>
+              <div class="study-card-bottom">
+                <span v-if="article.subcategory" class="study-subcat">{{ subNames[article.subcategory] || article.subcategory }}</span>
+                <span v-for="tag in parseTags(article.tags)" :key="tag" class="study-tag">#{{ tag }}</span>
               </div>
             </div>
-            <span style="color:var(--text-muted);font-size:0.85rem;">→</span>
+            <span class="study-card-arrow">→</span>
           </router-link>
         </div>
       </div>
